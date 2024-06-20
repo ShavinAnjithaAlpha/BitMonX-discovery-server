@@ -1,0 +1,11 @@
+{
+  "name": "bitmonx-discovery-server",
+  "version": "1.0.0",
+  "description": "Discovery server library that can be used in microservices",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shavin Anjitha",
+  "license": "ISC"
+}
