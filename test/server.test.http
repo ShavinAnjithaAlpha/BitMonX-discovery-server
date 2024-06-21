@@ -1,0 +1,23 @@
+@hostname = http://localhost
+@port = 8765
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@http = HTTP/1.1
+
+### post request
+POST  {{host}}/bitmonx/register?name=shavin&list=true {{http}}
+Content-Type: {{contentType}}
+
+{
+    "name" : "SERVICE-PRODUCT",
+    "mapping": "/api/v1/customer",
+    "url": "http://localhost",
+    "port": 1887,
+    "health_check_url": "localhost:5412/health",
+    "health_check_interval": 10000,
+    "timeout": 10000,
+    "metadata": {
+        "version": "1.0.0",
+        "protocol": "http"
+    }
+}
