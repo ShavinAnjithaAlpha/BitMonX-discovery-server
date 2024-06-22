@@ -1,10 +1,15 @@
+const HeartBeat = require('./heartbeat');
+
 module.exports = class Instance {
+  // static properties
+  static MAX_HEARTBEAT_THRESHOLD = 100;
   // properties
   id;
   service_id;
   instance_name;
   ip_address;
   port;
+  heartbeats = [];
 
   constructor() {}
 
@@ -61,5 +66,19 @@ module.exports = class Instance {
 
   build() {
     return this;
+  }
+
+  addHeartBeat() {
+    this.heartbeats.push(
+      HeartBeat.builder()
+        .setServiceId(this.service_id)
+        .setInstanceId(this.id)
+        .build(),
+    );
+
+    if (this.heartbeats.length > Instance.MAX_HEARTBEAT_THRESHOLD) {
+      // remove the oldest heartbeats
+      this.heartbeats.splice(0, Instance.MAX_HEARTBEAT_THRESHOLD);
+    }
   }
 };

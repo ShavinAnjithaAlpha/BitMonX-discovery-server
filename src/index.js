@@ -5,6 +5,7 @@ const {
   registerNewService,
   deregisterService,
   query,
+  heartbeat,
 } = require('./controller/discovery');
 const { dashboard, serveStaticFile } = require('./controller/dashboard');
 const errorHandler = require('./error/handler');
@@ -17,6 +18,7 @@ const DEFAULT_PORT = 8765;
 const routes = {
   '/bitmonx/register': ['POST', registerNewService],
   '/bitmonx/deregister': ['DELETE', deregisterService],
+  '/bitmonx/heartbeat': ['POST', heartbeat],
   '/bitmonx/query': ['GET', query],
   '/bitmonx/dashboard': ['GET', dashboard],
 };

@@ -108,7 +108,23 @@ module.exports = class Service {
   }
 
   build() {
+    // create heartbeat check on the service instances
+    this.hearbeatInterval = setInterval(() => {
+      // get all the clients associated with the service
+      const clients = this.instances;
+      clients.forEach((client) => {});
+    }, this.health_check_interval);
+
     return this;
+  }
+
+  findInstanceWithURL(ipAddress, port) {
+    const instance = this.instances.find(
+      (instance) =>
+        instance.getIpAddress() === ipAddress && instance.getPort() === port,
+    );
+
+    return instance;
   }
 
   addInstance(ip_address, port, instance_name) {
@@ -123,6 +139,16 @@ module.exports = class Service {
     // add the instance to the instances array
     this.instances.push(instance);
     return instance.getId();
+  }
+
+  addHeartBeat(instance_id) {
+    const instance = this.instances.find(
+      (instance) => instance.getId() === instance_id,
+    );
+
+    if (!instance) throw new ServiceError('Instance not found', 404);
+
+    instance.addHeartBeat();
   }
 
   removeInstance(instance_id) {

@@ -2,10 +2,25 @@
 <html>
   <head>
     <link rel="stylesheet" href="/css/style.css" />
-    <title><%= title %></title>
+    <title>Dashboard</title>
   </head>
   <body>
-    <h1>Welcome to <%= title %></h1>
+    <h1>BitMonX Service Discovery Dashboard</h1>
+
+    <div id="services">
+      <h2>Services</h2>
+      <ul>
+        <% services.forEach(function(service) { %>
+          <li><%= service.name %></li>
+        <% }); %>
+      </ul>
+
+      <div class="health-card">
+        <h3>Health</h3>
+        <p class="health-card__cpu"></p>
+        <p class="health-card__memory"></p>
+        <p class="health-card__uptime"></p>
+      </div>
 
     <script src="/js/main.js"></script>
   </body>

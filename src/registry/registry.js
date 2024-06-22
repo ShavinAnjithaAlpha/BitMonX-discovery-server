@@ -69,6 +69,11 @@ module.exports = class ServiceRegistry {
 
     if (!serviceObj) throw new ServiceError('Service not found', 404);
 
+    // find if the same instances is try to register again
+    const instance = serviceObj.findInstanceWithURL(service.host, service.port);
+    if (instance)
+      return { serviceId: serviceObj.getId(), instanceId: instance.getId() };
+
     // check whether mapping is match with the service mapping
     if (serviceObj.getMapping() !== service.mapping) {
       throw new ServiceError('Conflict: Service mapping does not match', 400);
@@ -125,6 +130,16 @@ module.exports = class ServiceRegistry {
 
   numberOfInstances() {
     return this.number_of_instances;
+  }
+
+  addHeartBeat(service_id, instance_id) {
+    // find the service with the given service id
+    const serviceObj = this.services.find(
+      (service) => service.getId() === service_id,
+    );
+
+    // then add the heartbeat to the instance
+    serviceObj.addHeartBeat(instance_id);
   }
 
   log() {

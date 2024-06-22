@@ -1,6 +1,7 @@
 const path = require('path');
 const ejs = require('ejs');
 const fs = require('fs');
+const ServiceRegistry = require('../registry/registry');
 
 function dashboard(req, res) {
   const templatePath = path.join(__dirname, '../views', 'dashboard.ejs');
@@ -14,7 +15,9 @@ function dashboard(req, res) {
     }
 
     // Render the EJS template to HTML
-    const renderedHtml = ejs.render(content, { title: 'Dashboard Page' });
+    const renderedHtml = ejs.render(content, {
+      services: ServiceRegistry.getRegistry().getServices(),
+    });
 
     // Send the rendered HTML as the response
     res.writeHead(200, { 'Content-Type': 'text/html' });

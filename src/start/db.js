@@ -16,7 +16,7 @@ function getDatabase() {
     }
 
     // otherwise print the success message
-    console.log(`Database created at ${db_path}`);
+    console.log(`[DATABASE]: database connected`);
   });
 
   return db;

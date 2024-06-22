@@ -1,8 +1,9 @@
 h1 {
-  font-size: 5rem;
-  color: darkblue;
+  font-size: 2rem;
+  color: orange;
 }
 
 body {
   background-color: black;
+  color: #999999;
 }
