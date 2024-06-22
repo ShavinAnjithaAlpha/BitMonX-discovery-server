@@ -121,6 +121,12 @@ module.exports = class Service {
     return instance.getId();
   }
 
+  removeInstance(instance_id) {
+    this.instances = this.instances.filter(
+      (instance) => instance.getId() !== instance_id,
+    );
+  }
+
   numberOfInstances() {
     return this.instances.length;
   }

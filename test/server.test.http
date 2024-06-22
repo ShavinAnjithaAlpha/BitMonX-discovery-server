@@ -9,7 +9,7 @@ POST  {{host}}/bitmonx/register?name=shavin&list=true {{http}}
 Content-Type: {{contentType}}
 
 {
-    "name" : "SERVICE-PRODUCT",
+    "name" : "SERVICE-PRODUCT-CATALOG",
     "mapping": "/api/v1/customer",
     "url": "http://localhost",
     "port": 1887,
@@ -21,3 +21,7 @@ Content-Type: {{contentType}}
         "protocol": "http"
     }
 }
+
+### deregister service instances
+DELETE {{host}}/bitmonx/deregister?serviceId=1&instanceId=1 {{http}}
+Content-Type: {{contentType}}

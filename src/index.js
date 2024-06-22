@@ -1,10 +1,12 @@
 const http = require('node:http');
+const path = require('node:path');
 const { init } = require('./start/db');
 const {
   registerNewService,
   deregisterService,
   query,
 } = require('./controller/discovery');
+const { dashboard, serveStaticFile } = require('./controller/dashboard');
 const errorHandler = require('./error/handler');
 
 // Default port for the server
@@ -14,7 +16,22 @@ const routes = {
   '/bitmonx/register': ['POST', registerNewService],
   '/bitmonx/deregister': ['DELETE', deregisterService],
   '/bitmonx/query': ['GET', query],
+  '/bitmonx/dashboard': ['GET', dashboard],
 };
+
+function serveStaticFiles(req, res) {
+  if (req.url.match(/.css$/)) {
+    const cssPath = path.join(__dirname, 'public', req.url);
+    serveStaticFile(cssPath, 'text/css', res);
+    return true;
+  } else if (req.url.match(/.js$/)) {
+    const jsPath = path.join(__dirname, 'public', req.url);
+    serveStaticFile(jsPath, 'text/javascript', res);
+    return true;
+  }
+
+  return false;
+}
 
 function routeMapper(req, res) {
   // parse the query parameter
@@ -37,6 +54,9 @@ function routeMapper(req, res) {
       res.end('Method not allowed');
     }
   } else {
+    // server static files // CSS and JS
+    const status = serveStaticFiles(req, res);
+    if (status) return;
     // routes not match
     // bad request
     res.statusCode = 400;

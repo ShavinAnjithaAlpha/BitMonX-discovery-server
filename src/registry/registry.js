@@ -50,27 +50,65 @@ module.exports = class ServiceRegistry {
     this.number_of_services++;
     this.number_of_instances++;
 
+    console.log(
+      `Service registered: ${service.name} | SERVICE_ID: ${serviceId} | INSTANCE_ID: ${instanceId}`,
+    );
+
     return { serviceId, instanceId };
   }
 
   registerNewInstance(service) {
     // find the service with the given srevice name
     const serviceObj = this.services.find(
-      (service) => service.getName() === service.name,
+      (service_) => service_.getName() === service.name,
     );
 
     if (!serviceObj) throw new ServiceError('Service not found', 404);
 
+    // check whether mapping is match with the service mapping
+    if (serviceObj.getMapping() !== service.mapping) {
+      throw new ServiceError('Conflict: Service mapping does not match', 400);
+    }
+
     // add the instances to the service object
     const instanceId = serviceObj.addInstance(
-      service.ip_address,
+      service.host,
       service.port,
       service.instance_name ?? null,
     );
     // increment the number of instances
     this.number_of_instances++;
 
+    console.log(
+      `Service instance registered: ${serviceObj.name} | SERVICE_ID: ${serviceObj.id} | INSTANCE_ID: ${instanceId}`,
+    );
+
     return { serviceId: serviceObj.getId(), instanceId };
+  }
+
+  deregisterInstance(service_id, instance_id) {
+    // find the service with the given service id
+    const serviceObj = this.services.find(
+      (service) => service.getId() === service_id,
+    );
+
+    if (!serviceObj) throw new ServiceError('Service not found', 404);
+
+    // remove the instance from the service object
+    serviceObj.removeInstance(instance_id);
+    // decrement the number of instances
+    this.number_of_instances--;
+    // get the number of instances of that service
+    const instances = serviceObj.numberOfInstances();
+    if (instances === 0) {
+      // remove the service as well
+      this.services = this.services.filter(
+        (service) => service.getId() !== service_id,
+      );
+
+      // decrement the number of services
+      this.number_of_services--;
+    }
   }
 
   numerOfServices() {

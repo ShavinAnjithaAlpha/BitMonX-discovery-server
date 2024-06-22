@@ -27,7 +27,21 @@ function registerNewService(req, res) {
   );
 }
 
-function deregisterService(req, res) {}
+function deregisterService(req, res) {
+  // get the service id and instance id from the request query
+  const serviceId = parseInt(req.query.get('serviceId'));
+  if (!serviceId) throw new ServiceError('Service id is required', 400);
+
+  const instanceId = parseInt(req.query.get('instanceId'));
+  if (!instanceId) throw new ServiceError('Instance id is required', 400);
+
+  // get the service registry
+  const registry = ServiceRegistry.getRegistry();
+  // deregister the service
+  registry.deregisterInstance(serviceId, instanceId);
+
+  res.end(JSON.stringify({ message: 'Service deregistered successfully' }));
+}
 
 function query(req, res) {}
 
