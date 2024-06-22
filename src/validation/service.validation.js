@@ -7,7 +7,7 @@ function validateService(service) {
     mapping: Joi.string().max(255).required(),
     host: Joi.string().required(),
     port: Joi.number().min(1000).max(65536).required(),
-    health_check_url: Joi.string().uri().required(),
+    health_check_url: Joi.string().required(),
     health_check_interval: Joi.number().required(),
     timeout: Joi.number().required(),
     metadata: Joi.object({

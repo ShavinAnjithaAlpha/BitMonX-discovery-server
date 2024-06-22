@@ -8,6 +8,8 @@ const {
 } = require('./controller/discovery');
 const { dashboard, serveStaticFile } = require('./controller/dashboard');
 const errorHandler = require('./error/handler');
+const { initWSS } = require('./socket');
+const { healthCheck } = require('./tasks/health_check');
 
 // Default port for the server
 const DEFAULT_PORT = 8765;
@@ -85,11 +87,19 @@ function discovery() {
     });
   });
 
+  // start the WebSocket Server
+  initWSS(server);
+
   // listen on the port specified in the config file
   const port = config.server.port || DEFAULT_PORT;
   server.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
   });
+
+  // initiate the health check task periodically
+  setInterval(() => {
+    healthCheck();
+  }, 5000);
 }
 
 discovery();

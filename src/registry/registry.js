@@ -17,6 +17,10 @@ module.exports = class ServiceRegistry {
     return this.registry;
   }
 
+  getServices() {
+    return this.services;
+  }
+
   serviceExists(service_name) {
     return this.services.some((service) => service.getName() === service_name);
   }
@@ -40,7 +44,7 @@ module.exports = class ServiceRegistry {
 
     // add the instances to the service object
     const instanceId = serviceObj.addInstance(
-      service.ip_address,
+      service.host,
       service.port,
       service.instance_name ?? null,
     );
@@ -98,6 +102,9 @@ module.exports = class ServiceRegistry {
     serviceObj.removeInstance(instance_id);
     // decrement the number of instances
     this.number_of_instances--;
+    console.log(
+      `Service instance deregistered: SERVICE_ID: ${service_id} | INSTANCE_ID: ${instance_id}`,
+    );
     // get the number of instances of that service
     const instances = serviceObj.numberOfInstances();
     if (instances === 0) {
@@ -108,6 +115,7 @@ module.exports = class ServiceRegistry {
 
       // decrement the number of services
       this.number_of_services--;
+      console.log(`Service deregistered: SERVICE_ID: ${service_id}`);
     }
   }
 

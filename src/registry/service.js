@@ -98,6 +98,10 @@ module.exports = class Service {
     return this.env;
   }
 
+  getInstances() {
+    return this.instances;
+  }
+
   static builder() {
     // return a new empty instance of Service with generated Service ID
     return new Service();
