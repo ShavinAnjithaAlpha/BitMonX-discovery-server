@@ -5,11 +5,7 @@ let wss = null;
 function initWSS(server) {
   wss = new WebSocket.Server({ server });
 
-  wss.on('connection', function connection(ws) {
-    console.log('New client connected');
-
-    ws.send('Welcome to the websocket server');
-  });
+  wss.on('connection', function connection(ws) {});
 }
 
 function getWSS() {

@@ -1,6 +1,8 @@
 const http = require('node:http');
 const path = require('node:path');
 const { init } = require('./start/db');
+const { readLoadBalancer } = require('./load_balance/init');
+const { requestParser } = require('./load_balance/index');
 const {
   registerNewService,
   deregisterService,
@@ -60,17 +62,22 @@ function routeMapper(req, res) {
   } else {
     // server static files // CSS and JS
     const status = serveStaticFiles(req, res);
-    if (status) return;
+    if (!status) {
+      // parse the request to the load balancer for routing
+      requestParser(req, res);
+    }
     // routes not match
     // bad request
-    res.statusCode = 400;
-    res.end('Bad Request');
+    // res.statusCode = 400;
+    // res.end('Bad Request');
   }
 }
 
 function discovery() {
   // first read theh global configurations from the config file
   const config = require('./read_config');
+  // read the load balancer from the configurations
+  readLoadBalancer(config);
   // initialize the database
   init();
   // create a http server on specified port

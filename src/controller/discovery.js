@@ -51,12 +51,13 @@ function heartbeat(req, res) {
   const instanceId = parseInt(req.query.get('instanceId'));
   if (!instanceId) throw new ServiceError('Instance id is required', 400);
 
-  console.log(
-    `[HEARTBEAT] Service id: ${serviceId}, Instance id: ${instanceId} is alive`,
-  );
   ServiceRegistry.getRegistry().addHeartBeat(serviceId, instanceId);
 
-  res.end();
+  // Simulating asynchronous operation
+  setTimeout(() => {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok' }));
+  }, 100);
 }
 
 function query(req, res) {}

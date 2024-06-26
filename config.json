@@ -1,5 +1,8 @@
 {
   "server": {
     "port": 8765
+  },
+  "loadbalancer": {
+    "algorithm": "round-robin"
   }
 }

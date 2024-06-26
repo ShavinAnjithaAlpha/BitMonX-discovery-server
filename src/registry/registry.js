@@ -21,6 +21,13 @@ module.exports = class ServiceRegistry {
     return this.services;
   }
 
+  getService(url) {
+    const service = this.services.find((service) =>
+      url.startsWith(service.getMapping()),
+    );
+    return service;
+  }
+
   serviceExists(service_name) {
     return this.services.some((service) => service.getName() === service_name);
   }
@@ -37,6 +44,7 @@ module.exports = class ServiceRegistry {
       .setVersion(service?.metadata?.version ?? '1.0.0')
       .setProtocol(service?.metadata?.protocol ?? 'http')
       .setEnv(service?.metadata?.env ?? 'development')
+      .setHeartBeatInterval(service?.heartbeat?.interval ?? 10000)
       .build();
 
     // add the service to the services array
@@ -71,8 +79,10 @@ module.exports = class ServiceRegistry {
 
     // find if the same instances is try to register again
     const instance = serviceObj.findInstanceWithURL(service.host, service.port);
-    if (instance)
+    if (instance) {
+      instance.setStatus('UP');
       return { serviceId: serviceObj.getId(), instanceId: instance.getId() };
+    }
 
     // check whether mapping is match with the service mapping
     if (serviceObj.getMapping() !== service.mapping) {
@@ -137,6 +147,7 @@ module.exports = class ServiceRegistry {
     const serviceObj = this.services.find(
       (service) => service.getId() === service_id,
     );
+    if (serviceObj == null) throw new ServiceError('Service not found', 404);
 
     // then add the heartbeat to the instance
     serviceObj.addHeartBeat(instance_id);

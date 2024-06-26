@@ -10,6 +10,10 @@ function validateService(service) {
     health_check_url: Joi.string().required(),
     health_check_interval: Joi.number().required(),
     timeout: Joi.number().required(),
+    heartbeat: Joi.object({
+      interval: Joi.number().required(),
+      threshold: Joi.number().optional(),
+    }).optional(),
     metadata: Joi.object({
       protocol: Joi.string().valid('http', 'https').required(),
       version: Joi.string().required(),

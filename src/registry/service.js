@@ -1,6 +1,11 @@
 const Instance = require('./instance');
+const { getLoadBalanceAlgorithm } = require('../load_balance/init');
+const { RoundRobin } = require('../load_balance/static/RoundRobin');
+const ServiceError = require('../error/ServiceError');
 
 module.exports = class Service {
+  // static properties
+  static DEFAULT_HEARTBEAT_INTERVAL = 10000;
   // properties
   id;
   name;
@@ -11,8 +16,12 @@ module.exports = class Service {
   version;
   protocol;
   env;
+  heartbeat_interval = Service.DEFAULT_HEARTBEAT_INTERVAL;
   // array of service's instances
   instances = [];
+
+  // property for store the state of the load balancing algorithm
+  loadbalancer_state = null;
 
   static nextServiceId = 0;
 
@@ -61,6 +70,11 @@ module.exports = class Service {
     return this;
   }
 
+  setHeartBeatInterval(interval) {
+    this.heartbeat_interval = interval;
+    return this;
+  }
+
   // getters for each properties
   getId() {
     return this.id;
@@ -98,8 +112,24 @@ module.exports = class Service {
     return this.env;
   }
 
+  getHeartBeatInterval() {
+    return this.heartbeat_interval;
+  }
+
   getInstances() {
     return this.instances;
+  }
+
+  getInstance(index) {
+    if (index >= this.instances.length) {
+      throw new ServiceError('No instance with index: ' + index);
+    }
+
+    return this.instances[index];
+  }
+
+  getLoadBalancerState() {
+    return this.loadbalancer_state;
   }
 
   static builder() {
@@ -107,14 +137,34 @@ module.exports = class Service {
     return new Service();
   }
 
-  build() {
-    // create heartbeat check on the service instances
-    this.hearbeatInterval = setInterval(() => {
-      // get all the clients associated with the service
-      const clients = this.instances;
-      clients.forEach((client) => {});
-    }, this.health_check_interval);
+  // method for building the load balancing state object for the service
+  buildLoadBalancerState() {
+    // get the load balancer algorithm from the global configs
+    const algorithm = getLoadBalanceAlgorithm();
+    switch (algorithm) {
+      case 'round-robin':
+        this.loadbalancer_state = RoundRobin.builder()
+          .setInstanceCount(this.numberOfInstances())
+          .build();
+        break;
 
+      default:
+        break;
+    }
+  }
+
+  build() {
+    this.timeout = setTimeout(() => {
+      // create heartbeat check on the service instances
+      this.hearbeatInterval = setInterval(() => {
+        // get all the clients associated with the service
+        const clients = this.instances;
+        clients.forEach((client) => {
+          this.checkInstanceStatus();
+        });
+      }, this.heartbeat_interval);
+    }, 2000);
+    this.buildLoadBalancerState();
     return this;
   }
 
@@ -136,6 +186,7 @@ module.exports = class Service {
       .setPort(port)
       .build();
 
+    this.updateLoadBalancerState('add');
     // add the instance to the instances array
     this.instances.push(instance);
     return instance.getId();
@@ -155,9 +206,35 @@ module.exports = class Service {
     this.instances = this.instances.filter(
       (instance) => instance.getId() !== instance_id,
     );
+
+    this.updateLoadBalancerState('add');
   }
 
   numberOfInstances() {
     return this.instances.length;
+  }
+
+  checkInstanceStatus() {
+    this.getInstances().forEach((instance) => {
+      const timeDiff = instance.fromLastHeartBeat(); // fetch the time difference between the last heartbeat and now
+      if (timeDiff > this.heartbeat_interval * 2) {
+        instance.setStatus('DOWN');
+      } else {
+        instance.setStatus('UP');
+      }
+    });
+  }
+
+  // method for updating the load balancing state
+  updateLoadBalancerState(action) {
+    if (this.loadbalancer_state !== null) {
+      if (getLoadBalanceAlgorithm() === 'round-robin') {
+        if (action === 'add') {
+          this.loadbalancer_state.addInstance();
+        } else if (action === 'remove') {
+          this.loadbalancer_state.removeInstance();
+        }
+      }
+    }
   }
 };

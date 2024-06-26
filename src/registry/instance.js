@@ -4,6 +4,7 @@ module.exports = class Instance {
   // static properties
   static MAX_HEARTBEAT_THRESHOLD = 100;
   // properties
+  status;
   id;
   service_id;
   instance_name;
@@ -39,6 +40,11 @@ module.exports = class Instance {
     return this;
   }
 
+  setStatus(status) {
+    this.status = status;
+    return this;
+  }
+
   // getters for each properties
   getId() {
     return this.id;
@@ -60,11 +66,16 @@ module.exports = class Instance {
     return this.port;
   }
 
+  getStatus() {
+    return this.status;
+  }
+
   static builder() {
     return new Instance();
   }
 
   build() {
+    this.status = 'UP';
     return this;
   }
 
@@ -76,9 +87,18 @@ module.exports = class Instance {
         .build(),
     );
 
+    if (this.status === 'DOWN') {
+      this.status = 'UP';
+    }
+
     if (this.heartbeats.length > Instance.MAX_HEARTBEAT_THRESHOLD) {
       // remove the oldest heartbeats
       this.heartbeats.splice(0, Instance.MAX_HEARTBEAT_THRESHOLD);
     }
+  }
+
+  fromLastHeartBeat() {
+    if (this.heartbeats.length === 0) return 0;
+    return this.heartbeats[this.heartbeats.length - 1].fromNow();
   }
 };

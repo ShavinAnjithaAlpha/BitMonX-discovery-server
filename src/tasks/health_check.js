@@ -31,7 +31,7 @@ function healthCheck() {
             });
           })
           .catch((err) => {
-            console.log('Cannot send health data to clients');
+            // console.log('Cannot send health data to clients');
           });
       });
     });
