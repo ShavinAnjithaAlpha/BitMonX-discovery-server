@@ -2,6 +2,8 @@ const Instance = require('./instance');
 const { getLoadBalanceAlgorithm } = require('../load_balance/init');
 const { RoundRobin } = require('../load_balance/static/RoundRobin');
 const ServiceError = require('../error/ServiceError');
+const { Random } = require('../load_balance/static/Random');
+const { IpHash } = require('../load_balance/static/IpHash');
 
 module.exports = class Service {
   // static properties
@@ -148,6 +150,14 @@ module.exports = class Service {
           .build();
         break;
 
+      case 'random':
+        this.loadbalancer_state = Random.builder()
+          .setInstanceCount(this.numberOfInstances())
+          .build();
+        break;
+      case 'ip-hash':
+        this.loadbalancer_state = IpHash.builder().build();
+        break;
       default:
         break;
     }
@@ -186,7 +196,7 @@ module.exports = class Service {
       .setPort(port)
       .build();
 
-    this.updateLoadBalancerState('add');
+    this.updateLoadBalancerState('add', instance);
     // add the instance to the instances array
     this.instances.push(instance);
     return instance.getId();
@@ -203,11 +213,14 @@ module.exports = class Service {
   }
 
   removeInstance(instance_id) {
+    const instance = this.instances.find(
+      (instance) => instance.getId() === instance_id,
+    );
     this.instances = this.instances.filter(
       (instance) => instance.getId() !== instance_id,
     );
 
-    this.updateLoadBalancerState('add');
+    this.updateLoadBalancerState('remove', instance);
   }
 
   numberOfInstances() {
@@ -226,13 +239,26 @@ module.exports = class Service {
   }
 
   // method for updating the load balancing state
-  updateLoadBalancerState(action) {
+  updateLoadBalancerState(action, instance = null) {
     if (this.loadbalancer_state !== null) {
-      if (getLoadBalanceAlgorithm() === 'round-robin') {
+      const loadBalancerAlgorithm = getLoadBalanceAlgorithm();
+      if (loadBalancerAlgorithm === 'round-robin') {
         if (action === 'add') {
           this.loadbalancer_state.addInstance();
         } else if (action === 'remove') {
           this.loadbalancer_state.removeInstance();
+        }
+      } else if (loadBalancerAlgorithm === 'random') {
+        if (action === 'add') {
+          this.loadbalancer_state.addInstance();
+        } else if (action === 'remove') {
+          this.loadbalancer_state.removeInstance();
+        }
+      } else if (loadBalancerAlgorithm === 'ip-hash') {
+        if (action === 'add') {
+          this.loadbalancer_state.addNode(instance);
+        } else if (action === 'remove') {
+          this.loadbalancer_state.removeNode(instance);
         }
       }
     }

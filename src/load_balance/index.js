@@ -2,6 +2,8 @@ const ServiceError = require('../error/ServiceError');
 const ServiceRegistry = require('../registry/registry');
 const { handleRoundRobin } = require('./static/RoundRobin');
 const { getLoadBalanceAlgorithm } = require('./init');
+const { handleRandom } = require('./static/Random');
+const { handleIpHash } = require('./static/IpHash');
 
 function requestParser(req, res) {
   // get the load balance algorithm
@@ -17,7 +19,11 @@ function requestParser(req, res) {
     case 'round-robin':
       handleRoundRobin(matchedService, req, res);
       break;
-
+    case 'random':
+      handleRandom(matchedService, req, res);
+      break;
+    case 'ip-hash':
+      handleIpHash(matchedService, req, res);
     default:
       break;
   }

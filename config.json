@@ -3,6 +3,6 @@
     "port": 8765
   },
   "loadbalancer": {
-    "algorithm": "round-robin"
+    "algorithm": "ip-hash"
   }
 }
