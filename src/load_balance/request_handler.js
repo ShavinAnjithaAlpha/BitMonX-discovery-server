@@ -13,6 +13,7 @@ function request_handle(instance, req, res) {
     options['body'] = req.body;
   }
 
+  const start_time = process.hrtime(); // start the timer
   fetch(url, options)
     .then((response) => {
       // set the response status code
@@ -25,8 +26,18 @@ function request_handle(instance, req, res) {
     })
     .then((data) => {
       res.end(data);
+      // calculate the response time
+      const elapsed_time = process.hrtime(start_time);
+      const response_time = elapsed_time[0] * 1e3 + elapsed_time[1] * 1e-6;
+      // update the instance stat
+      instance.getStats().update(response_time, false);
     })
     .catch((error) => {
+      // calculate the elapsed time
+      const elapsed_time = process.hrtime(start_time);
+      const response_time = elapsed_time[0] * 1e3 + elapsed_time[1] * 1e-6;
+      // update the instance stat
+      instance.getStats().update(response_time, true);
       console.error(error);
       res.statusCode = 500;
       return res.end({ status: 'Internal Server Error' });

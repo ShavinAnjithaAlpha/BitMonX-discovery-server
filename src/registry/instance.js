@@ -1,4 +1,5 @@
 const HeartBeat = require('./heartbeat');
+const InstanceStat = require('./instance_stat');
 
 module.exports = class Instance {
   // static properties
@@ -10,7 +11,9 @@ module.exports = class Instance {
   instance_name;
   ip_address;
   port;
+  // instance dynamics properties
   heartbeats = [];
+  stats;
 
   constructor() {}
 
@@ -70,12 +73,17 @@ module.exports = class Instance {
     return this.status;
   }
 
+  getStats() {
+    return this.stats;
+  }
+
   static builder() {
     return new Instance();
   }
 
   build() {
     this.status = 'UP';
+    this.stats = new InstanceStat(this);
     return this;
   }
 
