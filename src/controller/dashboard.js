@@ -18,6 +18,7 @@ function dashboard(req, res) {
     const renderedHtml = ejs.render(content, {
       services: ServiceRegistry.getRegistry().getServices(),
       instances_count: ServiceRegistry.getRegistry().numberOfInstances(),
+      system_data: getSystemData(),
     });
 
     // Send the rendered HTML as the response
@@ -36,6 +37,19 @@ function serveStaticFile(filePath, contentType, response) {
     response.writeHead(200, { 'Content-Type': contentType });
     response.end(content);
   });
+}
+
+function getSystemData() {
+  // get the config from the configuration files
+  const config = require('../read_config');
+  // create the system data object
+  const systemData = {
+    info: config.info,
+    server: config.server,
+    loadbalancer: config.loadbalancer.algorithm,
+  };
+
+  return systemData;
 }
 
 module.exports = {

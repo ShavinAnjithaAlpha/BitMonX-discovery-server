@@ -99,13 +99,21 @@ function addNewService(data) {
   serviceElement.append(serviceMappingElement);
   // append the service element to the services container
   $('.service-grid').append(serviceElement);
+
+  // get the total services element
+  const totalServicesElement = $('#total_services');
+  if (totalServicesElement) {
+    // get its text and converted to a number
+    let totalServices = parseInt(totalServicesElement.text());
+    totalServicesElement.text(totalServices + 1);
+  }
 }
 
 function addNewInstance(data) {
   console.log(data);
   // create a new node element
   const node = $(
-    `<div class='node' id='node-${data.serviceId}-${data.instance.id}' ></div>`,
+    `<div class='node' id='node-${data.service_id}-${data.instance.id}' ></div>`,
   );
   // create a title bar element for the node
   const titleBar = $("<div class='node__title__bar'></div>");
@@ -134,6 +142,14 @@ function addNewInstance(data) {
 
   // add node to the node grid
   $(`.nodes-grid`).append(node);
+
+  // get the total instances element
+  const totalInstancesElement = $('#total_instances');
+  if (totalInstancesElement) {
+    // get its text and converted to a number
+    let totalInstances = parseInt(totalInstancesElement.text());
+    totalInstancesElement.text(totalInstances + 1);
+  }
 }
 
 // chart of the real time response time of the services registered in the discovery server

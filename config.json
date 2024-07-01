@@ -1,8 +1,20 @@
 {
+  "info": {
+    "name": "API Gateway",
+    "version": "1.0.0",
+    "description": "API Gateway for micro",
+    "author": "Sergey Kuznetsov",
+    "license": "MIT"
+  },
   "server": {
+    "ipaddress": "192.168.8.146",
     "port": 8765
   },
   "loadbalancer": {
     "algorithm": "round-robin"
+  },
+  "ratelimiting": {
+    "maxRequests": 100,
+    "windowMs": 60000
   }
 }
