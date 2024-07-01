@@ -4,6 +4,7 @@ const { RoundRobin } = require('../load_balance/static/RoundRobin');
 const ServiceError = require('../error/ServiceError');
 const { Random } = require('../load_balance/static/Random');
 const { IpHash } = require('../load_balance/static/IpHash');
+const broadcastData = require('../tasks/socket_broadcast');
 
 module.exports = class Service {
   // static properties
@@ -199,6 +200,22 @@ module.exports = class Service {
     this.updateLoadBalancerState('add', instance);
     // add the instance to the instances array
     this.instances.push(instance);
+
+    // broadcast the changes to the clients
+    const broadcast_data = {
+      action: 'instance_registered',
+      service_id: this.getId(),
+      service_name: this.getName(),
+      instance: {
+        id: instance.getId(),
+        name: instance.getInstanceName(),
+        ip_address: instance.getIpAddress(),
+        port: instance.getPort(),
+        status: instance.getStatus(),
+      },
+    };
+    broadcastData(broadcast_data);
+
     return instance.getId();
   }
 
@@ -230,10 +247,25 @@ module.exports = class Service {
   checkInstanceStatus() {
     this.getInstances().forEach((instance) => {
       const timeDiff = instance.fromLastHeartBeat(); // fetch the time difference between the last heartbeat and now
+      const status_ = instance.getStatus();
       if (timeDiff > this.heartbeat_interval * 2) {
         instance.setStatus('DOWN');
       } else {
         instance.setStatus('UP');
+      }
+
+      // if changes occur in the instance status broadcast the changes to the clients
+      if (status_ !== instance.getStatus()) {
+        console.log(
+          `[INSTANCE]: Instance ${instance.getId()} is ${instance.getStatus()}`,
+        );
+        // broadcast the instance status to the clients
+        broadcastData({
+          action: 'instance_status',
+          service_id: this.getId(),
+          instance_id: instance.getId(),
+          status: instance.getStatus(),
+        });
       }
     });
   }

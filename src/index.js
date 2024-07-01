@@ -13,6 +13,7 @@ const { dashboard, serveStaticFile } = require('./controller/dashboard');
 const errorHandler = require('./error/handler');
 const { initWSS } = require('./socket');
 const { healthCheck } = require('./tasks/health_check');
+const sendResponseTime = require('./tasks/response_time');
 
 // Default port for the server
 const DEFAULT_PORT = 8765;
@@ -33,6 +34,10 @@ function serveStaticFiles(req, res) {
   } else if (req.url.match(/.js$/)) {
     const jsPath = path.join(__dirname, 'public', req.url);
     serveStaticFile(jsPath, 'text/javascript', res);
+    return true;
+  } else if (req.url.match(/.png$/)) {
+    const imgPath = path.join(__dirname, 'public', req.url);
+    serveStaticFile(imgPath, 'image/png', res);
     return true;
   }
 
@@ -109,6 +114,10 @@ function discovery() {
   setInterval(() => {
     healthCheck();
   }, 5000);
+
+  setInterval(() => {
+    sendResponseTime();
+  }, 2000);
 }
 
 discovery();

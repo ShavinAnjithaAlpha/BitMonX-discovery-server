@@ -38,7 +38,6 @@ class InstanceStat {
     if (failed) this.failed_requests++;
     // update the last updated time
     this.last_updated = new Date();
-    console.log(this.avg_response_time);
     return this;
   }
 

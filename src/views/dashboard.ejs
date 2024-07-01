@@ -1,27 +1,117 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/style.css" />
     <title>Dashboard</title>
   </head>
   <body>
-    <h1>BitMonX Service Discovery Dashboard</h1>
+    <h1>BitMonX Dashboard</h1>
 
-    <div id="services">
-      <h2>Services</h2>
-      <ul>
-        <% services.forEach(function(service) { %>
-          <li><%= service.name %></li>
-        <% }); %>
-      </ul>
+    <div class="system-details">
+      <div class="summary-bar">
+        <div class="summary-bar__total__services">
+          <h2><span><%= services.length %></span> Services</h2>
+        </div>
 
-      <div class="health-card">
-        <h3>Health</h3>
-        <p class="health-card__cpu"></p>
-        <p class="health-card__memory"></p>
-        <p class="health-card__uptime"></p>
+        <div class="summary-bar__total__instances">
+          <h2><span><%= instances_count %></span> Instances</h2>
+        </div>
       </div>
 
+      <div class="system-properties">
+        <h2>System Properties</h2>
+        <table>
+          <tr>
+            <td class="left-td">System Name:</td>
+            <td><span>ECommerce</span></td>
+          </tr>
+          <tr>
+            <td class="left-td">System Version:</td>
+            <td><span>v1.0.0</span></td>
+          </tr>
+          <tr>
+            <td class="left-td">System Port:</td>
+            <td><span>7854</span></td>
+          </tr>
+          <tr>
+            <td class="left-td">System IP Address:</td>
+            <td><span>192.168.7.4</span></td>
+          </tr>
+          <tr>
+            <td class="left-td">System Status:</td>
+            <td><span>UP</span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="service-container">
+      <h1>Services</h1>
+      <div class="service-grid">
+        <% for (let service of services) { %>
+        <div class="service-card" id="service-<%= service.id %>">
+          <div class="service-card__title__bar">
+            <h2><%= service.name %></h2>
+            <span><%= service.protocol %></span>
+          </div>
+          <p class="service-card__id">Service ID: <%= service.id %></p>
+          <p>
+            <%= service.numberOfInstances() %> Instances | <%=
+            service.numberOfInstances() %> UP
+          </p>
+          <p class="service-card__mapping"><%= service.mapping %></p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="node-container">
+      <h1>Service Nodes</h1>
+
+      <div class="container">
+        <div class="nodes-grid">
+          <% services.forEach(service => { %> <%
+          service.instances.forEach(instance => { %>
+          <div class="node" id="node-<%= service.id %>-<%= instance.id %>">
+            <div class="node__title__bar">
+              <h2>Node <%= instance.id %></h2>
+              <span class="node-status"><%= instance.status %></span>
+            </div>
+            <p><%= service.name %> Service</p>
+            <p>IP Address: <%= instance.ip_address %></p>
+            <p>Port: <%= instance.port %></p>
+            <ul>
+              <li>CPU Usage: <span class="cpu"></span></li>
+              <li>Memory Usage: <span class="mem"></span></li>
+            </ul>
+            <p>Up Time: <span class="uptime"></span></p>
+          </div>
+          <% }); %> <% }); %>
+        </div>
+
+        <div class="chart instance-chart">
+          <h2>Service Instances</h2>
+          <h1 id="total-instances"></h1>
+          <canvas id="instances-chart" width="400" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart">
+      <h2>Average Response Time</h2>
+      <h1 id="avg-response-time"></h1>
+      <span>ms</span>
+      <canvas id="response-time-chart" width="400" height="200"></canvas>
+    </div>
+
+    <script src="https://cdn-script.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/js/main.js"></script>
   </body>
 </html>

@@ -23,10 +23,16 @@ function healthCheck() {
         )
           .then((res) => res.json())
           .then((data) => {
+            const health_data = {
+              action: 'health',
+              service_id: service.getId(),
+              instance_id: instance.getId(),
+              health: data,
+            };
             // send the health status to the clients via WebSocket
             wss.clients.forEach((client) => {
               if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify(data));
+                client.send(JSON.stringify(health_data));
               }
             });
           })

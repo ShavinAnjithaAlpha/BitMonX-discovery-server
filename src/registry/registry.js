@@ -1,4 +1,5 @@
 const ServiceError = require('../error/ServiceError');
+const broadcastData = require('../tasks/socket_broadcast');
 const Service = require('./service');
 
 module.exports = class ServiceRegistry {
@@ -65,6 +66,24 @@ module.exports = class ServiceRegistry {
     console.log(
       `Service registered: ${service.name} | SERVICE_ID: ${serviceId} | INSTANCE_ID: ${instanceId}`,
     );
+
+    // broadcast the changes to the clients
+    const broadcast_data = {
+      action: 'service_registered',
+      service: {
+        id: serviceId,
+        name: service.name,
+        mapping: service.mapping,
+        health_check_url: service.health_check_url,
+        health_check_interval: service.health_check_interval ?? 5000,
+        timeout: service.timeout ?? 300000,
+        version: service?.metadata?.version ?? '1.0.0',
+        protocol: service?.metadata?.protocol ?? 'http',
+        env: service?.metadata?.env ?? 'development',
+        heartbeat_interval: service?.heartbeat?.interval ?? 10000,
+      },
+    };
+    broadcastData(broadcast_data);
 
     return { serviceId, instanceId };
   }

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <title>Dashboard</title>
+  </head>
+  <body>
+    <h1>Discovery Dashboard</h1>
+
+    <div class="summary-bar">
+      <div class="summary-bar__total__services">
+        <h2><span>3</span> Services</h2>
+      </div>
+
+      <div class="summary-bar__total__instances">
+        <h2><span>50</span> Instances</h2>
+      </div>
+
+      <div class="system-details">
+        <h2>System Details</h2>
+        <ul>
+          <li>Uptime: <span>99.9%</span></li>
+          <li>Memory Usage: <span>20.5GB</span></li>
+          <li>CPU Usage: <span>20.4%</span></li>
+          <li>Disk Usage: <span>2%</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="service-container">
+      <h1>Services</h1>
+      <div class="service-grid">
+        <div class="service-card">
+          <div class="service-card__title__bar">
+            <h2>PRODUCTS</h2>
+            <span>HTTPS</span>
+          </div>
+          <p class="service-card__id">Service ID: 1</p>
+          <p>3 Instances | 3 UP</p>
+          <p class="service-card__mapping">/api/v1/products</p>
+        </div>
+
+        <div class="service-card">
+          <div class="service-card__title__bar">
+            <h2>CUSTOMER</h2>
+            <span>HTTP</span>
+          </div>
+          <p class="service-card__id">Service ID: 2</p>
+          <p>5 Instances | 3 UP</p>
+          <p class="service-card__mapping">/api/v1/customer</p>
+        </div>
+
+        <div class="service-card">
+          <div class="service-card__title__bar">
+            <h2>PAYMENTS</h2>
+            <span>HTTP</span>
+          </div>
+          <p class="service-card__id">Service ID: 3</p>
+          <p>8 Instances | 3 UP</p>
+          <p class="service-card__mapping">/api/v1/payments</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-container">
+      <h1>Service Nodes</h1>
+      <div class="nodes-grid">
+        <div class="node">
+          <div class="node__title__bar">
+            <h2>Node 5</h2>
+            <span>UP</span>
+          </div>
+          <p>PRODUCT Service</p>
+          <ul>
+            <li>CPU Usage: <span>20,4%</span></li>
+            <li>Memory Usage: <span>20.5GB</span></li>
+            <li>Disk Usage: <span>2%</span></li>
+          </ul>
+        </div>
+
+        <div class="node">
+          <div class="node__title__bar">
+            <h2>Node 5</h2>
+            <span>UP</span>
+          </div>
+          <p>PRODUCT Service</p>
+          <ul>
+            <li>CPU Usage: <span>20,4%</span></li>
+            <li>Memory Usage: <span>20.5GB</span></li>
+            <li>Disk Usage: <span>2%</span></li>
+          </ul>
+        </div>
+
+        <div class="node">
+          <div class="node__title__bar">
+            <h2>Node 5</h2>
+            <span>UP</span>
+          </div>
+          <p>PRODUCT Service</p>
+          <ul>
+            <li>CPU Usage: <span>20,4%</span></li>
+            <li>Memory Usage: <span>20.5GB</span></li>
+            <li>Disk Usage: <span>2%</span></li>
+          </ul>
+        </div>
+
+        <div class="node">
+          <div class="node__title__bar">
+            <h2>Node 5</h2>
+            <span>UP</span>
+          </div>
+          <p>PRODUCT Service</p>
+          <ul>
+            <li>CPU Usage: <span>20,4%</span></li>
+            <li>Memory Usage: <span>20.5GB</span></li>
+            <li>Disk Usage: <span>2%</span></li>
+          </ul>
+        </div>
+
+        <div class="node">
+          <div class="node__title__bar">
+            <h2>Node 5</h2>
+            <span>UP</span>
+          </div>
+          <p>PRODUCT Service</p>
+          <ul>
+            <li>CPU Usage: <span>20,4%</span></li>
+            <li>Memory Usage: <span>20.5GB</span></li>
+            <li>Disk Usage: <span>2%</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="response-time">
+      <h2>Average Response Time</h2>
+      <div class="avg-response-time-header">
+        <h2><span>15</span> ms</h2>
+
+        <select name="instance-response-time" id="instance-response-time">
+          <option value="1">Instance 1</option>
+          <option value="2">Instance 2</option>
+          <option value="3">Instance 3</option>
+        </select>
+      </div>
+      <div class="response-time__chart">
+        <canvas id="response-time-chart"></canvas>
+      </div>
+    </div>
+
+    <script src="/js/main.js"></script>
+  </body>
+</html>

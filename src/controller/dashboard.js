@@ -17,6 +17,7 @@ function dashboard(req, res) {
     // Render the EJS template to HTML
     const renderedHtml = ejs.render(content, {
       services: ServiceRegistry.getRegistry().getServices(),
+      instances_count: ServiceRegistry.getRegistry().numberOfInstances(),
     });
 
     // Send the rendered HTML as the response

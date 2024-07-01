@@ -2,18 +2,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  list-style: none;
 }
 
 :root {
   --title-color: rgb(254, 254, 254);
   --subtitle-color: #8f98b1;
   --text-color: #6f738a;
-  --background-color: #050916;
-  --card-color: #050b1c;
-  --chart-color: #040b1d;
-  --dim-color: #53659d;
-  --hightlight-color: #70a974;
 }
 
 html {
@@ -25,10 +19,11 @@ body {
   font-size: 1.6rem;
   line-height: 1.6;
   background-color: #060810;
+  /* background-image: url('../dashboards-bg.png'); */
   background-size: cover;
   background-position: center;
+  color: #777;
   padding: 20px;
-  color: var(--text-color);
 }
 
 h1 {
@@ -53,57 +48,10 @@ p {
   color: var(--text-color);
 }
 
-.system-details {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 10px 20px;
-  margin: 10px;
-  border-radius: 10px;
-  background-color: var(--card-color);
-}
-
-.system-details .system-properties {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  margin-left: 20px;
-  min-width: 500px;
-}
-
-.system-details .system-properties h2 {
-  margin-bottom: 20px;
-}
-
-.system-details .system-properties table {
-  width: 100%;
-  border: 1px solid #55555599;
-  border-top: none;
-  border-left: none;
-}
-
-.system-details .system-properties table td {
-  min-width: 100px;
-  text-align: left;
-  padding: 2px 20px;
-  border-top: 1px solid #55555599;
-  border-left: 1px solid #55555599;
-}
-
-.system-details .system-properties table td.left-td {
-  text-align: right;
-}
-
-.system-details .system-properties table span {
-  color: var(--subtitle-color);
-  font-size: 1.6rem;
-}
-
 .summary-bar {
   display: flex;
   flex-direction: row;
+  width: 100%;
   justify-content: flex-start;
   align-items: center;
   padding: 10px 20px;
@@ -111,43 +59,74 @@ p {
 
 .summary-bar .summary-bar__total__services {
   display: flex;
-  background-color: var(--card-color);
+  justify-content: center;
+  align-items: center;
+  background-color: #050b1c;
   border-radius: 10px;
   padding: 0px 20px;
+  height: 200px;
 }
 
 .summary-bar .summary-bar__total__instances {
   display: flex;
-  background-color: #000;
+  justify-content: center;
+  align-items: center;
   border-radius: 10px;
   margin-left: 20px;
-  background-color: var(--card-color);
+  background-color: #050b1c;
   padding: 0px 20px;
+  height: 200px;
 }
 
 .summary-bar .summary-bar__total__services h2 {
-  color: var(--subtitle-color);
+  color: #fff;
   font-size: 2rem;
   font-weight: 500;
   margin-right: 50px;
 }
 
 .summary-bar .summary-bar__total__services h2 span {
-  font-size: 12rem;
+  font-size: 7rem;
   font-weight: 700;
-  color: white;
 }
 
 .summary-bar .summary-bar__total__instances h2 {
-  color: var(--subtitle-color);
+  color: #fff;
   font-size: 2rem;
   font-weight: 500;
 }
 
 .summary-bar .summary-bar__total__instances h2 span {
-  font-size: 12rem;
+  font-size: 7rem;
   font-weight: 700;
-  color: white;
+}
+
+.system-details {
+  width: 500px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  border-radius: 5px;
+  background-color: #050b1c;
+  /* background: linear-gradient(90deg, #18213833, #1a294255); */
+  /* backdrop-filter: blur(10px) brightness(0.8) saturate(120%); */
+  /* box-shadow: 0 30px 50px 0 rgba(0, 0, 0, 0.2); */
+  padding: 20px;
+  margin: 20px;
+}
+
+.system-details ul {
+  list-style: none;
+}
+
+.system-details ul li {
+  color: #aaa;
+  font-size: 1.4rem;
+}
+
+.system-details ul li span {
+  color: #fff;
 }
 
 .service-container {
@@ -172,9 +151,9 @@ p {
   display: flex;
   flex-direction: column;
   width: 300px;
-  background-color: var(--card-color);
+  background-color: #040b1e;
   border-radius: 10px;
-  box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.2);
+  /* box-shadow: 0 30px 50px 0 rgba(0, 0, 0, 0.2); */
   padding: 20px;
   margin: 5px;
 }
@@ -187,7 +166,6 @@ p {
 }
 
 .service-card .service-card__title__bar span {
-  text-transform: capitalize;
   background-color: lime;
   color: black;
   border-radius: 3px;
@@ -217,33 +195,16 @@ p {
 }
 
 /* // node card styling */
-.node-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  max-height: 600px;
-}
-
 .nodes-grid {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
   gap: 5px;
-  margin: 20px;
 }
 
-.node-container .container {
+.node-container {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  max-height: 100%;
-  overflow: hidden;
-}
-
-.node-container .container .instance-chart {
-  height: 250px;
-  width: 100%;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .node-container h1 {
@@ -253,14 +214,23 @@ p {
 
 .node {
   width: 250px;
-  height: 220px;
+  height: 180px;
   border-radius: 10px;
-  background-color: var(--card-color);
-  box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.2);
+  /* background-color: rgb(5, 5, 41); */
+  background-color: #040b1e;
+  box-shadow: 0 40px 50px 0 rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 10px;
+  transition: background-color 0.3s;
+  cursor: pointer;
+  margin: 10px;
+}
+
+.node:hover {
+  background-color: #1a2942;
+  transition: background-color 0.3s;
 }
 
 .node .node__title__bar {
@@ -299,11 +269,56 @@ p {
   color: #fff;
 }
 
-.chart {
-  max-width: 500px;
-  max-height: 500px;
-  overflow: hidden;
-  background-color: var(--chart-color);
-  border-radius: 5px;
+.response-time {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   padding: 10px;
+  background-color: #040b1d;
+  border-radius: 10px;
+  box-shadow: 0 30px 50px 0 rgba(0, 0, 0, 0.2);
+  margin: 5px;
+}
+
+.response-time h2 {
+  font-size: 3rem;
+  font-weight: 500;
+  color: #eef0f4;
+}
+
+.response-time .avg-response-time-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.response-time .avg-response-time-header h2 {
+  color: #ffffffaa;
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+.response-time .avg-response-time-header h2 span {
+  color: #fff;
+  font-size: 5rem;
+  font-weight: 700;
+}
+
+.response-time select {
+  background-color: #1a294299;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 5px;
+  margin-left: 50px;
+}
+
+.response-time select option {
+  background-color: #1a294299;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 5px;
 }
