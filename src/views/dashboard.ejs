@@ -78,8 +78,13 @@
           </div>
           <p class="service-card__id">Service ID: <%= service.id %></p>
           <p>
-            <%= service.numberOfInstances() %> Instances | <%=
-            service.numberOfInstances() %> UP
+            <span class="service-card__ic"
+              ><%= service.numberOfInstances() %> Instances</span
+            >
+
+            <span class="service-card__uc"
+              ><%= service.numberOfInstances() %> UP</span
+            >
           </p>
           <p class="service-card__mapping"><%= service.mapping %></p>
         </div>
@@ -96,23 +101,41 @@
           service.instances.forEach(instance => { %>
           <div class="node" id="node-<%= service.id %>-<%= instance.id %>">
             <div class="node__title__bar">
-              <h2>Node <%= instance.id %></h2>
+              <h2>Node <%= instance.service_id %>.<%= instance.id %></h2>
               <span class="node-status"><%= instance.status %></span>
             </div>
             <p><%= service.name %> Service</p>
-            <p>IP Address: <%= instance.ip_address %></p>
-            <p>Port: <%= instance.port %></p>
-            <ul>
-              <li>CPU Usage: <span class="cpu"></span></li>
-              <li>Memory Usage: <span class="mem"></span></li>
-            </ul>
-            <p>Up Time: <span class="uptime"></span></p>
+            <table>
+              <tr>
+                <td class="left-td">IP Address</td>
+                <td><span><%= instance.ip_address %></span></td>
+              </tr>
+              <tr>
+                <td class="left-td">Port</td>
+                <td><span><%= instance.port %></span></td>
+              </tr>
+            </table>
+            <table>
+              <tr>
+                <td class="left-td">CPU Usage</td>
+                <td><span class="cpu"></span></td>
+              </tr>
+              <tr>
+                <td class="left-td">Memory Usage</td>
+                <td><span class="mem"></span></td>
+              </tr>
+              <tr>
+                <td class="left-td">Up Time</td>
+                <td><span class="uptime"></span></td>
+              </tr>
+            </table>
           </div>
           <% }); %> <% }); %>
         </div>
 
         <div class="chart instance-chart">
-          <h2>Service Instances</h2>
+          <h2>Nodes Resources</h2>
+          <h3>Node 1.1</h3>
           <h1 id="total-instances"></h1>
           <canvas id="instances-chart" width="400" height="200"></canvas>
         </div>

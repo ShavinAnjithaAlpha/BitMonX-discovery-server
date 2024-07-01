@@ -20,11 +20,24 @@ html {
   font-size: 62.5%;
 }
 
+html::-webkit-scrollbar {
+  width: 10px;
+}
+
+html::-webkit-scrollbar-thumb {
+  background-color: #24272f;
+  border-radius: 10px;
+}
+
+html::-webkit-scrollbar-track {
+  background-color: #050916;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   font-size: 1.6rem;
   line-height: 1.6;
-  background-color: #060810;
+  background-color: var(--background-color);
   background-size: cover;
   background-position: center;
   padding: 20px;
@@ -62,6 +75,7 @@ p {
   margin: 10px;
   border-radius: 10px;
   background-color: var(--card-color);
+  background: linear-gradient(145deg, #0d1117, #131826);
 }
 
 .system-details .system-properties {
@@ -173,10 +187,18 @@ p {
   flex-direction: column;
   width: 300px;
   background-color: var(--card-color);
+  background: linear-gradient(145deg, #0d1117, #131826);
   border-radius: 10px;
-  box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.2);
+  /* box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.2); */
   padding: 20px;
   margin: 5px;
+  cursor: pointer;
+  transition: 0.3s all ease;
+}
+
+.service-card:hover {
+  background: #1a1f2c;
+  transition: 0.3s all ease;
 }
 
 .service-card .service-card__title__bar {
@@ -188,7 +210,7 @@ p {
 
 .service-card .service-card__title__bar span {
   text-transform: capitalize;
-  background-color: lime;
+  background-color: dodgerblue;
   color: black;
   border-radius: 3px;
   padding: 2px 5px;
@@ -211,9 +233,27 @@ p {
   margin-bottom: 10px;
 }
 
+.service-card span.service-card__ic {
+  background-color: dodgerblue;
+  color: black;
+  border-radius: 5px;
+  padding: 2px 5px;
+  font-size: 1.4rem;
+  margin-right: 5px;
+}
+
+.service-card span.service-card__uc {
+  background-color: limegreen;
+  color: #000;
+  border-radius: 5px;
+  padding: 2px 5px;
+  font-size: 1.4rem;
+}
+
 .service-card p.service-card__mapping {
   text-decoration: underline;
   color: rgb(39, 104, 236);
+  margin-top: 10px;
 }
 
 /* // node card styling */
@@ -225,42 +265,56 @@ p {
 }
 
 .nodes-grid {
-  display: grid;
-  grid-template-columns: repeat(9, 1fr);
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 5px;
-  margin: 20px;
+  margin: 5px 0;
+  padding: 0px 5px;
+  border-radius: 5px;
+  height: 350px;
 }
 
 .node-container .container {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   width: 100%;
   max-height: 100%;
   overflow: hidden;
+  padding: 0px;
 }
 
 .node-container .container .instance-chart {
-  height: 250px;
+  height: 350px;
   width: 100%;
 }
 
 .node-container h1 {
-  margin: 10px 20px;
+  margin: 5px 20px;
   font-size: 3rem;
 }
 
 .node {
-  width: 250px;
-  height: 220px;
+  width: 300px;
+  height: 270px;
   border-radius: 10px;
   background-color: var(--card-color);
-  box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.2);
+  background: linear-gradient(145deg, #0d1117, #131826);
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 10px;
+  margin: 10px;
+  cursor: pointer;
+  transition: 0.3s all ease;
+}
+
+.node:hover {
+  background: #1a1f2c;
+  transition: 0.3s all ease;
 }
 
 .node .node__title__bar {
@@ -268,6 +322,7 @@ p {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 10px;
 }
 
 .node .node__title__bar h2 {
@@ -285,18 +340,19 @@ p {
   font-weight: 500;
 }
 
-.node ul {
-  list-style: none;
+.node table {
   margin-top: 20px;
 }
 
-.node ul li {
-  color: #aaa;
-  font-size: 1.4rem;
+.node span {
+  font-size: 1.6rem;
+  color: var(--subtitle-color);
+  font-weight: 500;
 }
 
-.node ul li span {
-  color: #fff;
+.node table span {
+  font-weight: 500;
+  color: var(--subtitle-color);
 }
 
 .chart {
