@@ -14,7 +14,7 @@
     "algorithm": "round-robin"
   },
   "ratelimiting": {
-    "maxRequests": 100,
-    "windowMs": 60000
+    "fillRate": 10,
+    "capacity": 1000
   }
 }

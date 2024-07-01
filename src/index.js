@@ -14,6 +14,7 @@ const errorHandler = require('./error/handler');
 const { initWSS } = require('./socket');
 const { healthCheck } = require('./tasks/health_check');
 const sendResponseTime = require('./tasks/response_time');
+const TokenBucket = require('./ratelimitter/tokenbucket');
 
 // Default port for the server
 const DEFAULT_PORT = 8765;
@@ -85,8 +86,26 @@ function discovery() {
   readLoadBalancer(config);
   // initialize the database
   init();
+
+  // create a token bucket if rate limiting enabled
+  let tokenBucket = null;
+  let ratelimiting = false;
+  if (config.ratelimiting) {
+    tokenBucket = TokenBucket.build();
+    ratelimiting = true;
+  }
   // create a http server on specified port
   const server = http.createServer((req, res) => {
+    // if ratelimiting is enabled then check the token bucket
+    if (ratelimiting) {
+      // if the token bucket is empty then return 429
+      if (!tokenBucket.consume(1)) {
+        res.statusCode = 429;
+        res.end('Too many requests');
+        return;
+      }
+    }
+
     // parsing the request body
     let data = '';
     req.on('data', (chunk) => {
