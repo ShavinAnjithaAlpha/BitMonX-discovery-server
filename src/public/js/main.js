@@ -64,14 +64,35 @@ function updateNode(data) {
     statusElement.text(data.status);
     if (data.status === 'DOWN') {
       statusElement.css('background-color', 'red');
+      updateUpInstanceCount(data.service_id, -1);
     } else {
       statusElement.css('background-color', 'limegreen');
+      updateUpInstanceCount(data.service_id, 1);
     }
   }
 }
 
+function updateUpInstanceCount(service_id, count) {
+  const serviceElement = $(`#service-${service_id}`);
+  if (serviceElement.length) {
+    const instancesElement = serviceElement.find('.service-card__uc');
+    // get the current number of up instances
+    const upInstances = parseInt(instancesElement.text());
+    instancesElement.text(`${count + upInstances} UP`);
+  }
+}
+
+function updateInstanceCount(service_id, count) {
+  const serviceElement = $(`#service-${service_id}`);
+  if (serviceElement.length) {
+    const instancesElement = serviceElement.find('.service-card__ic');
+    // get the current number of up instances
+    const upInstances = parseInt(instancesElement.text());
+    instancesElement.text(`${count + upInstances} Instance`);
+  }
+}
+
 function addNewService(data) {
-  console.log(data);
   // create a new service element
   const serviceElement = $(
     `<div class="service-card" id="service-${data.id}"></div>`,
@@ -86,7 +107,10 @@ function addNewService(data) {
     `<p class='service-card__id' >Service ID: ${data.id}</p>`,
   );
   // create the p element for number of instances and number of up instances
-  const instancesElement = $(`<p>Instances: 1 | Up: 1</p>`);
+  const instancesElement = $(`<p></p>`);
+  // add two span element to the instances element
+  instancesElement.append(`<span class='service-card__ic'> 1 Instance </span>`);
+  instancesElement.append("<span class='service-card__uc'> 1  UP </span>");
   // add the service mapping p element
   const serviceMappingElement = $(
     `<p class='service-card__mapping'>Mapping: ${data.mapping}</p>`,
@@ -107,10 +131,12 @@ function addNewService(data) {
     let totalServices = parseInt(totalServicesElement.text());
     totalServicesElement.text(totalServices + 1);
   }
+
+  // hide the no services element
+  hideNoServices();
 }
 
 function addNewInstance(data) {
-  console.log(data);
   // create a new node element
   const node = $(
     `<div class='node' id='node-${data.service_id}-${data.instance.id}' ></div>`,
@@ -118,27 +144,48 @@ function addNewInstance(data) {
   // create a title bar element for the node
   const titleBar = $("<div class='node__title__bar'></div>");
   // add instance id and status as a h2 and span to the title bar
-  titleBar.append(`<h2>Node ${data.instance.id}</h2>`);
+  titleBar.append(`<h2>Node ${data.service_id}.${data.instance.id}</h2>`);
   titleBar.append(`<span class='node-status'>UP</span>`);
 
   // create a service name, ip address and port element
   const serviceElement = $(`<p class='node__service'>${data.service_name}</p>`);
-  const ipElement = $(`<p>IP Address: ${data.instance.ip_address}</p>`);
-  const portElement = $(`<p>Port: ${data.instance.port}</p>`);
+  const table = $('<table></table>');
+  const ipRow = $('<tr></tr>');
+  ipRow.append(`<td class='left-td' >IP Address</td>`);
+  ipRow.append(`<td>${data.instance.ip_address}</td>`);
+  const portRow = $('<tr></tr>');
+  portRow.append(`<td class='left-td' >Port:</td>`);
+  portRow.append(`<td>${data.instance.port}</td>`);
+  table.append(ipRow);
+  table.append(portRow);
+
   // insert a ul element
   const ul = $('<ul></ul>');
-  // add cpu, mem ul element to the ul element
-  ul.append('<li>CPU: <span class="cpu">0%</span></li>');
-  ul.append('<li>Memory: <span class="mem">0%</span></li>');
-  // add up time p element
-  const uptime = $('<p>Uptime: <span class="uptime">0s</span></p>');
+  // create a table element
+  const infoTable = $('<table></table>');
+  // create a row for CPU
+  const cpuRow = $('<tr></tr>');
+  cpuRow.append("<td class='left-td' >CPU Usage</td>");
+  cpuRow.append('<td><span class="cpu">0%</span></td>');
+  // create a row for Memory
+  const memRow = $('<tr></tr>');
+  memRow.append("<td class='left-td' >Memory Usage</td>");
+  memRow.append('<td><span class="mem">0%</span></td>');
+  // create a row for Uptime
+  const uptimeRow = $('<tr></tr>');
+  uptimeRow.append("<td class='left-td' >Uptime</td>");
+  uptimeRow.append('<td><span class="uptime">0s</span></td>');
+  // append all rows to the table
+  infoTable.append(cpuRow);
+  infoTable.append(memRow);
+  infoTable.append(uptimeRow);
+  // append the table to the ul element
+  ul.append($('<li></li>').append(table));
   // insert all the element to the node element
   node.append(titleBar);
   node.append(serviceElement);
-  node.append(ipElement);
-  node.append(portElement);
-  node.append(ul);
-  node.append(uptime);
+  node.append(table);
+  node.append(infoTable);
 
   // add node to the node grid
   $(`.nodes-grid`).append(node);
@@ -150,6 +197,23 @@ function addNewInstance(data) {
     let totalInstances = parseInt(totalInstancesElement.text());
     totalInstancesElement.text(totalInstances + 1);
   }
+
+  // hide the no instances element
+  hideNoInstances();
+
+  // update the number of instances and up instances of the service
+  updateInstanceCount(data.service_id, 1);
+  updateUpInstanceCount(data.service_id, 1);
+}
+
+function hideNoInstances() {
+  // hide the no instances element
+  $('.no-instances').hide();
+}
+
+function hideNoServices() {
+  // hide the no services element
+  $('.no-services').hide();
 }
 
 // chart of the real time response time of the services registered in the discovery server

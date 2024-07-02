@@ -68,7 +68,15 @@
     </div>
 
     <div class="service-container">
-      <h1>Services</h1>
+      <h1>Registered Services</h1>
+
+      <% if (services.length === 0) { %>
+      <div class="no-services">
+        <h3>No Services Found</h3>
+        <p>There are no services running on this system.</p>
+      </div>
+      <% } %>
+
       <div class="service-grid">
         <% for (let service of services) { %>
         <div class="service-card" id="service-<%= service.id %>">
@@ -79,7 +87,7 @@
           <p class="service-card__id">Service ID: <%= service.id %></p>
           <p>
             <span class="service-card__ic"
-              ><%= service.numberOfInstances() %> Instances</span
+              ><%= service.numberOfInstances() %> Instance</span
             >
 
             <span class="service-card__uc"
@@ -93,7 +101,14 @@
     </div>
 
     <div class="node-container">
-      <h1>Service Nodes</h1>
+      <h1>Registered Nodes</h1>
+
+      <% if (services.length === 0) { %>
+      <div class="no-instances">
+        <h3>No Nodes Found</h3>
+        <p>There are no nodes running on this system.</p>
+      </div>
+      <% } %>
 
       <div class="container">
         <div class="nodes-grid">
@@ -134,8 +149,7 @@
         </div>
 
         <div class="chart instance-chart">
-          <h2>Nodes Resources</h2>
-          <h3>Node 1.1</h3>
+          <p>system resource usage of node</p>
           <h1 id="total-instances"></h1>
           <canvas id="instances-chart" width="400" height="200"></canvas>
         </div>

@@ -181,6 +181,22 @@ p {
   gap: 10px;
 }
 
+.no-services {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background-color: var(--card-color);
+  background: linear-gradient(145deg, #0d1117, #131826);
+  padding: 10px;
+  border-radius: 20px;
+  margin: 10px 20px;
+}
+
+.no-services h3 {
+  font-weight: 400;
+}
+
 /* service card */
 .service-card {
   display: flex;
@@ -262,6 +278,22 @@ p {
   flex-direction: column;
   justify-content: flex-start;
   max-height: 600px;
+}
+
+.no-instances {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background-color: var(--card-color);
+  background: linear-gradient(145deg, #0d1117, #131826);
+  padding: 10px;
+  border-radius: 20px;
+  margin: 10px 20px;
+}
+
+.no-instances h3 {
+  font-weight: 400;
 }
 
 .nodes-grid {
