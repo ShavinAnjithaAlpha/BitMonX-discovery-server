@@ -86,9 +86,54 @@ function query(req, res) {
   );
 }
 
+function queryHealth(req, res) {
+  // get the service id and instance id from the request query
+  const serviceId = parseInt(req.query.get('serviceId'));
+  if (!serviceId) throw new ServiceError('Service id is required', 400);
+
+  const instanceId = parseInt(req.query.get('instanceId'));
+  if (!instanceId) throw new ServiceError('Instance id is required', 400);
+
+  // make sure the service and instance exist
+  const registry = ServiceRegistry.getRegistry();
+  const service = registry.getServiceById(serviceId);
+
+  if (!service) throw new ServiceError('Service not found', 404);
+
+  // now fetch the instance from the service object
+  const instance = service.getInstanceById(instanceId);
+  if (!instance) throw new InstanceError('Instance not found', 404);
+
+  // check whether if the instance is UP
+  if (instance.getStatus() !== 'UP') {
+    throw new InstanceError('Instance is DOWN', 404);
+  }
+  // now request the health data from the instance found
+  fetch(
+    `http://${instance.getIpAddress()}:${instance.getPort()}${service.getHealthCheckUrl()}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
+    .then((res) => res.json())
+    .then((data) => {
+      res.end(JSON.stringify(data));
+    })
+    .catch((err) => {
+      throw new InstanceError(
+        'Error while fetching health from the instance ' + instanceId,
+        404,
+      );
+    });
+}
+
 module.exports = {
   registerNewService,
   deregisterService,
   heartbeat,
   query,
+  queryHealth,
 };

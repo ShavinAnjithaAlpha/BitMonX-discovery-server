@@ -22,6 +22,13 @@ module.exports = class ServiceRegistry {
     return this.services;
   }
 
+  getServiceById(service_id) {
+    const service = this.services.find(
+      (service) => service.getId() === service_id,
+    );
+    return service;
+  }
+
   getService(url) {
     const service = this.services.find((service) =>
       url.startsWith(service.getMapping()),

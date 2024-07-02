@@ -131,6 +131,14 @@ module.exports = class Service {
     return this.instances[index];
   }
 
+  getInstanceById(instance_id) {
+    const instance = this.instances.find(
+      (instance) => instance.getId() === instance_id,
+    );
+
+    return instance;
+  }
+
   getLoadBalancerState() {
     return this.loadbalancer_state;
   }

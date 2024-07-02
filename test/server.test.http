@@ -29,3 +29,7 @@ Content-Type: {{contentType}}
 ### query service instances
 GET {{host}}/bitmonx/query?mapping=/api/v1/products {{http}}
 Content-Type: {{contentType}}
+
+### query the health from the instance
+GET {{host}}/bitmonx/query/health?serviceId=1&instanceId=1 {{http}}
+Content-Content-Type: {{contentType}}

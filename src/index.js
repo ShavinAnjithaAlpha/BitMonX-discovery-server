@@ -8,6 +8,7 @@ const {
   deregisterService,
   query,
   heartbeat,
+  queryHealth,
 } = require('./controller/discovery');
 const { dashboard, serveStaticFile } = require('./controller/dashboard');
 const errorHandler = require('./error/handler');
@@ -23,6 +24,7 @@ const routes = {
   '/bitmonx/register': ['POST', registerNewService],
   '/bitmonx/deregister': ['DELETE', deregisterService],
   '/bitmonx/heartbeat': ['POST', heartbeat],
+  '/bitmonx/query/health': ['GET', queryHealth],
   '/bitmonx/query': ['GET', query],
   '/bitmonx/dashboard': ['GET', dashboard],
 };
