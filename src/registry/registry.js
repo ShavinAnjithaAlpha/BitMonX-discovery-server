@@ -29,6 +29,13 @@ module.exports = class ServiceRegistry {
     return service;
   }
 
+  queryMapping(mapping) {
+    const service = this.services.find(
+      (service) => service.getMapping() === mapping,
+    );
+    return service;
+  }
+
   serviceExists(service_name) {
     return this.services.some((service) => service.getName() === service_name);
   }

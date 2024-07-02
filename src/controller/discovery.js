@@ -1,6 +1,7 @@
 const { validateService } = require('../validation/service.validation');
 const ServiceError = require('../error/ServiceError');
 const ServiceRegistry = require('../registry/registry');
+const InstanceError = require('../error/InstanceError');
 
 function registerNewService(req, res) {
   // validate the request body
@@ -60,7 +61,30 @@ function heartbeat(req, res) {
   }, 100);
 }
 
-function query(req, res) {}
+function query(req, res) {
+  const mapping = req.query.get('mapping');
+  if (!mapping) throw new ServiceError('Mapping is required', 400);
+
+  // get the registry
+  const registry = ServiceRegistry.getRegistry();
+  // get the service that match with the mapping
+  const sreviceMatched = registry.queryMapping(mapping);
+  if (!sreviceMatched) throw new ServiceError('Service not found', 404);
+
+  // get the one instance from the service
+  const instance = sreviceMatched.getRandomInstance();
+  if (!instance) {
+    throw new InstanceError('UP Instance not found', 404);
+  }
+
+  // send the response with the instance ip address and port
+  res.end(
+    JSON.stringify({
+      ip_address: instance.getIpAddress(),
+      port: instance.getPort(),
+    }),
+  );
+}
 
 module.exports = {
   registerNewService,

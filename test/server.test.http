@@ -25,3 +25,7 @@ Content-Type: {{contentType}}
 ### deregister service instances
 DELETE {{host}}/bitmonx/deregister?serviceId=1&instanceId=1 {{http}}
 Content-Type: {{contentType}}
+
+### query service instances
+GET {{host}}/bitmonx/query?mapping=/api/v1/products {{http}}
+Content-Type: {{contentType}}

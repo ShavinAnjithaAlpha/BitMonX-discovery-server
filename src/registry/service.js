@@ -135,6 +135,18 @@ module.exports = class Service {
     return this.loadbalancer_state;
   }
 
+  getRandomInstance() {
+    // first filter the UP instances from the instances list
+    const upInstances = this.instances.filter(
+      (instance) => instance.getStatus() === 'UP',
+    );
+    if (upInstances.length === 0) null;
+
+    // randomly select the instance from the instance list
+    const randomIndex = Math.floor(Math.random() * upInstances.length);
+    return upInstances[randomIndex];
+  }
+
   static builder() {
     // return a new empty instance of Service with generated Service ID
     return new Service();
