@@ -239,6 +239,66 @@ const responseTimeChart = new Chart(ctx, {
   },
   options: {
     scales: {
+      x: {
+        // Configuring the x-axis
+        grid: {
+          display: true, // Display grid lines
+          color: 'rgba(0, 0, 255, 0.2)', // Grid line color
+          borderColor: 'rgb(54, 162, 235)', // Border color
+          borderWidth: 2, // Border width
+          drawBorder: true, // Draw border around the chart
+          drawOnChartArea: true, // Draw grid lines in the chart area
+          drawTicks: true, // Draw ticks on the scale
+          tickColor: 'rgba(75, 192, 192, 0.2)', // Tick color
+          tickLength: 10, // Tick length
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: true, // Display grid lines
+          color: 'rgba(0, 0, 255, 0.2)', // Grid line color
+          borderColor: 'rgb(54, 162, 235)', // Border color
+          borderWidth: 2, // Border width
+          drawBorder: true, // Draw border around the chart
+          drawOnChartArea: true, // Draw grid lines in the chart area
+          drawTicks: true, // Draw ticks on the scale
+          tickColor: 'rgba(75, 192, 192, 0.2)', // Tick color
+          tickLength: 10, // Tick length
+        },
+      },
+    },
+    elements: {
+      line: {
+        borderWidth: 0.5,
+      },
+    },
+  },
+});
+
+// chart of the real time response time of the services registered in the discovery server
+// created with Chart JS
+const ctx3 = document.getElementById('total-requets-chart').getContext('2d');
+
+const totalRequetsChart = new Chart(ctx3, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      {
+        data: [],
+        fill: false,
+        borderColor: '#f44336',
+        tension: 0.1,
+        pointRadius: 0,
+        fill: true, // Enable area fill
+        backgroundColor: '#f4433644', // Light blue area color
+        borderColor: '#2196f3', // Line color
+      },
+    ],
+  },
+  options: {
+    scales: {
       y: {
         beginAtZero: true,
       },
@@ -269,6 +329,16 @@ function pushResponseTimeData(data) {
   $('#avg-response-time').text(
     Math.round(data.total_avg_response_time * 100) + 'ms',
   );
+
+  // update the total requests label
+  const totalRequestChart = totalRequetsChart;
+  totalRequestChart.data.labels.push(time);
+
+  totalRequestChart.data.datasets.forEach((dataset) => {
+    dataset.data.push(data.total_requests);
+  });
+
+  totalRequestChart.update();
 }
 
 // line chart to show the total cpu usage and memory usage of the server

@@ -16,17 +16,19 @@ const { initWSS } = require('./socket');
 const { healthCheck } = require('./tasks/health_check');
 const sendResponseTime = require('./tasks/response_time');
 const TokenBucket = require('./ratelimitter/tokenbucket');
+const { handleLogin, renderLogin } = require('./auth/login_handler');
 
 // Default port for the server
 const DEFAULT_PORT = 8765;
 
 const routes = {
-  '/bitmonx/register': ['POST', registerNewService],
-  '/bitmonx/deregister': ['DELETE', deregisterService],
-  '/bitmonx/heartbeat': ['POST', heartbeat],
-  '/bitmonx/query/health': ['GET', queryHealth],
-  '/bitmonx/query': ['GET', query],
-  '/bitmonx/dashboard': ['GET', dashboard],
+  '/bitmonx/register': { POST: registerNewService },
+  '/bitmonx/deregister': { DELETE: deregisterService },
+  '/bitmonx/heartbeat': { POST: heartbeat },
+  '/bitmonx/query/health': { GET: queryHealth },
+  '/bitmonx/query': { GET: query },
+  '/bitmonx/dashboard': { GET: dashboard },
+  '/bitmonx/login': { POST: handleLogin, GET: renderLogin },
 };
 
 function serveStaticFiles(req, res) {
@@ -55,8 +57,9 @@ function routeMapper(req, res) {
 
   // now map the routes to the controller
   if (routes[route]) {
-    const [method, controller] = routes[route];
-    if (req.method === method) {
+    const router = routes[route];
+    if (router[req.method]) {
+      const controller = router[req.method];
       try {
         controller(req, res);
       } catch (exp) {
@@ -117,6 +120,7 @@ function discovery() {
       if (data === '') {
         data = '{}';
       }
+
       req.body = JSON.parse(data);
       routeMapper(req, res);
     });

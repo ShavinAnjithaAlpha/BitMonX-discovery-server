@@ -33,3 +33,12 @@ Content-Type: {{contentType}}
 ### query the health from the instance
 GET {{host}}/bitmonx/query/health?serviceId=1&instanceId=1 {{http}}
 Content-Content-Type: {{contentType}}
+
+### login
+POST {{host}}/bitmonx/login {{http}}
+Content-Type: {{contentType}}
+
+{
+    "username": "admin",
+    "password": "admin"
+}

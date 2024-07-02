@@ -2,28 +2,31 @@ const path = require('path');
 const ejs = require('ejs');
 const fs = require('fs');
 const ServiceRegistry = require('../registry/registry');
+const { authenticate } = require('../auth/login_handler');
 
 function dashboard(req, res) {
-  const templatePath = path.join(__dirname, '../views', 'dashboard.ejs');
+  authenticate(req, res, () => {
+    const templatePath = path.join(__dirname, '../views', 'dashboard.ejs');
 
-  // Read the EJS file
-  fs.readFile(templatePath, 'utf-8', (err, content) => {
-    if (err) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end('Error reading the template file.');
-      return;
-    }
+    // Read the EJS file
+    fs.readFile(templatePath, 'utf-8', (err, content) => {
+      if (err) {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('Error reading the template file.');
+        return;
+      }
 
-    // Render the EJS template to HTML
-    const renderedHtml = ejs.render(content, {
-      services: ServiceRegistry.getRegistry().getServices(),
-      instances_count: ServiceRegistry.getRegistry().numberOfInstances(),
-      system_data: getSystemData(),
+      // Render the EJS template to HTML
+      const renderedHtml = ejs.render(content, {
+        services: ServiceRegistry.getRegistry().getServices(),
+        instances_count: ServiceRegistry.getRegistry().numberOfInstances(),
+        system_data: getSystemData(),
+      });
+
+      // Send the rendered HTML as the response
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(renderedHtml);
     });
-
-    // Send the rendered HTML as the response
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderedHtml);
   });
 }
 
