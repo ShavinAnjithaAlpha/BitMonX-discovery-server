@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login</title>
+    <title>Admin Registration</title>
     <style>
       html::-webkit-scrollbar {
         width: 10px;
@@ -25,11 +25,11 @@
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background-color: #050916;
+        background-color: #f0f0f0;
         background: linear-gradient(135deg, #050916, #1a1f2b);
-        color: #8f98b1;
-        font-size: 1.6rem;
+        color: white;
       }
+
       form {
         width: 350px;
         background-color: #050916;
@@ -45,7 +45,8 @@
       }
 
       input[type='text'],
-      input[type='password'] {
+      input[type='password'],
+      input[type='email'] {
         width: calc(100% - 22px);
         padding: 10px;
         margin: 10px 0;
@@ -58,82 +59,68 @@
       }
 
       input[type='text']:focus,
-      input[type='password']:focus {
+      input[type='password']:focus,
+      input[type='email']:focus {
         outline: none;
         border-color: #007bff;
       }
 
-      input[type='test']:hover,
-      input[type='password']:hover {
+      input[type='text']:hover,
+      input[type='password']:hover,
+      input[type='email']:hover {
         border-color: #007bff;
-        transition: border-color 0.3s ease-in-out;
       }
 
       input[type='submit'] {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 5px;
         background-color: #007bff;
         color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
+        font-size: 1rem;
         cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
       }
+
       input[type='submit']:hover {
         background-color: #0056b3;
+      }
+
+      .link {
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      .link a {
+        color: #007bff;
+        text-decoration: none;
       }
     </style>
   </head>
   <body>
-    <h1>Login</h1>
-    <form id="login-form">
+    <h1>Admin Registration</h1>
+    <form action="/admin/register" method="post">
       <div>
-        <label for="username">Username</label>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          placeholder="username"
-          required
-        />
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required />
       </div>
       <div>
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="password"
-          required
-        />
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required />
       </div>
       <div>
-        <input type="submit" value="Login" />
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required />
+      </div>
+      <div>
+        <input type="submit" value="Register" />
+      </div>
+
+      <div class="link">
+        <a href="/bitmonx/dashboard">dashboard</a>
       </div>
     </form>
-
-    <script>
-      document
-        .getElementById('login-form')
-        .addEventListener('submit', async (e) => {
-          e.preventDefault();
-
-          const formData = {
-            username: document.getElementById('username').value,
-            password: document.getElementById('password').value,
-          };
-          // post the data to the server
-          const response = await fetch('/bitmonx/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData),
-          });
-          if (response.redirected) {
-            window.location.href = response.url;
-          } else {
-            alert(data.message);
-          }
-        });
-    </script>
   </body>
 </html>

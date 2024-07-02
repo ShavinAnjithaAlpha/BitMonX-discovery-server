@@ -15,6 +15,7 @@ function handleLogin(req, res) {
   // get the username and the password from the request body
   const { username, password } = req.body;
   if (username === USERNAME && password === PASSWORD) {
+    // replace with the real cerdential checking
     // create a session Id
     const sessionId = generateSessionId();
     sessions[sessionId] = username;
