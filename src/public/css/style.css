@@ -56,8 +56,9 @@ h2 {
 }
 
 h3 {
-  font-size: 2.2rem;
+  font-size: 2rem;
   color: var(--subtitle-color);
+  font-weight: 400;
 }
 
 p {
@@ -66,7 +67,46 @@ p {
   color: var(--text-color);
 }
 
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 500px;
+  max-height: 500px;
+  overflow: hidden;
+  background-color: var(--chart-color);
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.chart h1 span {
+  font-size: 2rem;
+}
+
+.chart .chart-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 10px 10px 0 0;
+}
+
+#response-time-card,
+#total-requests-card {
+  min-width: 48%;
+  height: 350px;
+}
+
 .system-details {
+  width: 50%;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
@@ -117,37 +157,32 @@ p {
 
 .summary-bar {
   display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
   padding: 10px 20px;
 }
 
 .summary-bar .summary-bar__total__services {
   display: flex;
-  background-color: var(--card-color);
   border-radius: 10px;
-  padding: 0px 20px;
+  justify-content: center;
 }
 
 .summary-bar .summary-bar__total__instances {
   display: flex;
-  background-color: #000;
   border-radius: 10px;
-  margin-left: 20px;
-  background-color: var(--card-color);
-  padding: 0px 20px;
+  justify-content: center;
 }
 
 .summary-bar .summary-bar__total__services h2 {
   color: var(--subtitle-color);
   font-size: 2rem;
   font-weight: 500;
-  margin-right: 50px;
 }
 
 .summary-bar .summary-bar__total__services h2 span {
-  font-size: 12rem;
+  font-size: 8rem;
   font-weight: 700;
   color: white;
 }
@@ -159,7 +194,7 @@ p {
 }
 
 .summary-bar .summary-bar__total__instances h2 span {
-  font-size: 12rem;
+  font-size: 8rem;
   font-weight: 700;
   color: white;
 }
@@ -387,11 +422,13 @@ p {
   color: var(--subtitle-color);
 }
 
-.chart {
-  max-width: 500px;
-  max-height: 500px;
-  overflow: hidden;
-  background-color: var(--chart-color);
-  border-radius: 5px;
-  padding: 10px;
+.node__selected {
+  border: 2px solid dodgerblue;
+}
+
+#instance-resource-card {
+  display: none;
+  width: 100%;
+  height: 300px;
+  margin-top: 0;
 }

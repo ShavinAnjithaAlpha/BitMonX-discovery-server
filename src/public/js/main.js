@@ -34,25 +34,6 @@ ws.onerror = function (error) {
   console.error('WebSocket error:', error);
 };
 
-function updateHealth(data) {
-  // get the node element with service id and instance id received from the server
-  const node = $(`#node-${data.service_id}-${data.instance_id}`);
-  if (node.length) {
-    // update the health status and data of the node
-    node.find('.cpu').text(data.health.cpu_usage[0].usage.toFixed(2) + '%');
-    node.find('.mem').text(data.health.memory_usage.usage.toFixed(2) + '%');
-    node.find('.uptime').text(data.health.uptime.toFixed(2) + 's');
-  }
-
-  // push the data to the instances chart
-  const chart = instancesChart;
-  const time = new Date().toLocaleTimeString();
-  chart.data.labels.push(time);
-  chart.data.datasets[0].data.push(data.health.cpu_usage[0].usage.toFixed(2));
-  chart.data.datasets[1].data.push(data.health.memory_usage.usage.toFixed(2));
-  chart.update();
-}
-
 function updateNode(data) {
   // get the node element by the service id and instance id
   const node = $(`#node-${data.service_id}-${data.instance_id}`);
@@ -226,13 +207,13 @@ const responseTimeChart = new Chart(ctx, {
     labels: [],
     datasets: [
       {
+        label: 'response time',
         data: [],
         fill: false,
-        borderColor: '#f44336',
         tension: 0.1,
         pointRadius: 0,
         fill: true, // Enable area fill
-        backgroundColor: '#f4433644', // Light blue area color
+        backgroundColor: '#2196f344', // Light blue area color
         borderColor: '#2196f3', // Line color
       },
     ],
@@ -273,6 +254,13 @@ const responseTimeChart = new Chart(ctx, {
         borderWidth: 0.5,
       },
     },
+    plugins: {
+      decimation: {
+        enabled: true,
+        algorithm: 'min-max', // or 'lttb'
+        samples: 500, // Number of points to keep
+      },
+    },
   },
 });
 
@@ -286,21 +274,46 @@ const totalRequetsChart = new Chart(ctx3, {
     labels: [],
     datasets: [
       {
+        label: 'Total Requests',
         data: [],
         fill: false,
-        borderColor: '#f44336',
+        borderColor: '#FE9900',
         tension: 0.1,
         pointRadius: 0,
         fill: true, // Enable area fill
-        backgroundColor: '#f4433644', // Light blue area color
-        borderColor: '#2196f3', // Line color
+        backgroundColor: '#FE990055',
       },
     ],
   },
   options: {
     scales: {
+      x: {
+        // Configuring the x-axis
+        grid: {
+          display: true, // Display grid lines
+          color: '#FE990055', // Grid line color
+          borderColor: '#FE990055', // Border color
+          borderWidth: 2, // Border width
+          drawBorder: true, // Draw border around the chart
+          drawOnChartArea: true, // Draw grid lines in the chart area
+          drawTicks: true, // Draw ticks on the scale
+          tickColor: '#FE990055', // Tick color
+          tickLength: 10, // Tick length
+        },
+      },
       y: {
         beginAtZero: true,
+        grid: {
+          display: true, // Display grid lines
+          color: '#FE990055', // Grid line color
+          borderColor: '#FE990055', // Border color
+          borderWidth: 2, // Border width
+          drawBorder: true, // Draw border around the chart
+          drawOnChartArea: true, // Draw grid lines in the chart area
+          drawTicks: true, // Draw ticks on the scale
+          tickColor: '#FE990055', // Tick color
+          tickLength: 10, // Tick length
+        },
       },
     },
     elements: {
@@ -339,6 +352,10 @@ function pushResponseTimeData(data) {
   });
 
   totalRequestChart.update();
+  // get the total requests label
+  const totalRequetsElement = $('#total-requests');
+  // update the total requests label
+  totalRequetsElement.text(data.total_requests);
 }
 
 // line chart to show the total cpu usage and memory usage of the server
@@ -375,8 +392,32 @@ const instancesChart = new Chart(ctx2, {
   },
   options: {
     scales: {
+      x: {
+        grid: {
+          display: true, // Display grid lines
+          color: '#ffffff33', // Grid line color
+          borderColor: '#ffffff33', // Border color
+          borderWidth: 2, // Border width
+          drawBorder: true, // Draw border around the chart
+          drawOnChartArea: true, // Draw grid lines in the chart area
+          drawTicks: true, // Draw ticks on the scale
+          tickColor: '#ffffff33', // Tick color
+          tickLength: 10, // Tick length
+        },
+      },
       y: {
         beginAtZero: true,
+        grid: {
+          display: true, // Display grid lines
+          color: '#ffffff33', // Grid line color
+          borderColor: '#ffffff33', // Border color
+          borderWidth: 2, // Border width
+          drawBorder: true, // Draw border around the chart
+          drawOnChartArea: true, // Draw grid lines in the chart area
+          drawTicks: true, // Draw ticks on the scale
+          tickColor: '#ffffff33', // Tick color
+          tickLength: 10, // Tick length
+        },
       },
     },
     elements: {
@@ -384,5 +425,66 @@ const instancesChart = new Chart(ctx2, {
         borderWidth: 0.5,
       },
     },
+    plugins: {
+      decimation: {
+        enabled: true,
+        algorithm: 'min-max', // or 'lttb'
+        samples: 500, // Number of points to keep
+      },
+    },
   },
 });
+
+// global variables for selected node and service
+let selected_node = null;
+let selected_service = null;
+// event listeners
+const nodes = $('.node');
+nodes.each(function (index, node) {
+  $(node).click(function () {
+    // remove the selected class from all the nodes
+    nodes.removeClass('node__selected');
+    const node = $(this);
+    node.addClass('node__selected');
+
+    // get the service id and instance id from the node id
+    const node_id = node.attr('id'); // node-1-1
+    const [_, service_id, instance_id] = node_id.split('-');
+    selected_node = parseInt(instance_id);
+    selected_service = parseInt(service_id);
+
+    // show the instance graph
+    const instanceResourceCardElement = $('#instance-resource-card');
+    instanceResourceCardElement.show();
+    // set the node name as the selected node
+    const nodeNameElement =
+      instanceResourceCardElement.find('.chart-header h2');
+    if (nodeNameElement) {
+      nodeNameElement.text(`Node ${service_id}.${instance_id}`);
+    }
+  });
+});
+
+function updateHealth(data) {
+  // get the node element with service id and instance id received from the server
+  const node = $(`#node-${data.service_id}-${data.instance_id}`);
+  if (node.length) {
+    // update the health status and data of the node
+    node.find('.cpu').text(data.health.cpu_usage[0].usage.toFixed(2) + '%');
+    node.find('.mem').text(data.health.memory_usage.usage.toFixed(2) + '%');
+    node.find('.uptime').text(data.health.uptime.toFixed(2) + 's');
+  }
+
+  if (
+    data.service_id === selected_service &&
+    data.instance_id === selected_node
+  ) {
+    // push the data to the instances chart
+    const chart = instancesChart;
+    const time = new Date().toLocaleTimeString();
+    chart.data.labels.push(time);
+    chart.data.datasets[0].data.push(data.health.cpu_usage[0].usage.toFixed(2));
+    chart.data.datasets[1].data.push(data.health.memory_usage.usage.toFixed(2));
+    chart.update();
+  }
+}

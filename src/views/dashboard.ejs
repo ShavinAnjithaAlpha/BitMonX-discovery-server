@@ -13,57 +13,75 @@
   <body>
     <h1>BitMonX Dashboard</h1>
 
-    <div class="system-details">
-      <div class="summary-bar">
-        <div class="summary-bar__total__services">
-          <h2>
-            <span id="total_services"><%= services.length %></span> Services
-          </h2>
+    <div class="header">
+      <div class="system-details">
+        <div class="summary-bar">
+          <div class="summary-bar__total__services">
+            <h2>
+              <span id="total_services"><%= services.length %></span> Services
+            </h2>
+          </div>
+
+          <div class="summary-bar__total__instances">
+            <h2>
+              <span id="total_instances"><%= instances_count %></span> Instances
+            </h2>
+          </div>
         </div>
 
-        <div class="summary-bar__total__instances">
-          <h2>
-            <span id="total_instances"><%= instances_count %></span> Instances
-          </h2>
+        <div class="system-properties">
+          <h3>System Properties</h3>
+          <table>
+            <tr>
+              <td class="left-td">System Name</td>
+              <td><span><%= system_data.info.name %></span></td>
+            </tr>
+            <tr>
+              <td class="left-td">System Version</td>
+              <td><span><%= system_data.info.version %></span></td>
+            </tr>
+            <tr>
+              <td class="left-td">System Description</td>
+              <td><span><%= system_data.info.description %></span></td>
+            </tr>
+            <tr>
+              <td class="left-td">System Authority</td>
+              <td><span><%= system_data.info.author %></span></td>
+            </tr>
+            <tr>
+              <td class="left-td">System License</td>
+              <td><span><%= system_data.info.license %></span></td>
+            </tr>
+            <tr>
+              <td class="left-td">System IP Address</td>
+              <td><span><%= system_data.server.ipaddress %></span></td>
+            </tr>
+            <tr>
+              <td class="left-td">System Port</td>
+              <td><span><%= system_data.server.port %></span></td>
+            </tr>
+            <tr>
+              <td class="left-td">Load Balancer</td>
+              <td><span><%= system_data.loadbalancer %></span></td>
+            </tr>
+          </table>
         </div>
       </div>
 
-      <div class="system-properties">
-        <h2>System Properties</h2>
-        <table>
-          <tr>
-            <td class="left-td">System Name</td>
-            <td><span><%= system_data.info.name %></span></td>
-          </tr>
-          <tr>
-            <td class="left-td">System Version</td>
-            <td><span><%= system_data.info.version %></span></td>
-          </tr>
-          <tr>
-            <td class="left-td">System Description</td>
-            <td><span><%= system_data.info.description %></span></td>
-          </tr>
-          <tr>
-            <td class="left-td">System Authority</td>
-            <td><span><%= system_data.info.author %></span></td>
-          </tr>
-          <tr>
-            <td class="left-td">System License</td>
-            <td><span><%= system_data.info.license %></span></td>
-          </tr>
-          <tr>
-            <td class="left-td">System IP Address</td>
-            <td><span><%= system_data.server.ipaddress %></span></td>
-          </tr>
-          <tr>
-            <td class="left-td">System Port</td>
-            <td><span><%= system_data.server.port %></span></td>
-          </tr>
-          <tr>
-            <td class="left-td">Load Balancer</td>
-            <td><span><%= system_data.loadbalancer %></span></td>
-          </tr>
-        </table>
+      <div class="chart" id="response-time-card">
+        <div class="chart-header">
+          <h3>Average Response Time</h3>
+          <h1 id="avg-response-time"><span>ms</span></h1>
+        </div>
+        <canvas id="response-time-chart" width="450" height="150"></canvas>
+      </div>
+
+      <div class="chart" id="total-requests-card">
+        <div class="chart-header">
+          <h3>Total Requests</h3>
+          <h1 id="total-requests"></h1>
+        </div>
+        <canvas id="total-requets-chart" width="450" height="150"></canvas>
       </div>
     </div>
 
@@ -148,26 +166,15 @@
           <% }); %> <% }); %>
         </div>
 
-        <div class="chart instance-chart">
-          <p>system resource usage of node</p>
+        <div class="chart" id="instance-resource-card">
+          <div class="chart-header">
+            <h3>Node Resource Usage</h3>
+            <h2></h2>
+          </div>
           <h1 id="total-instances"></h1>
           <canvas id="instances-chart" width="400" height="200"></canvas>
         </div>
       </div>
-    </div>
-
-    <div class="chart">
-      <h2>Average Response Time</h2>
-      <h1 id="avg-response-time"></h1>
-      <span>ms</span>
-      <canvas id="response-time-chart" width="400" height="200"></canvas>
-    </div>
-
-    <div class="chart">
-      <h2>Total Requests</h2>
-      <h1 id="total-request"></h1>
-      <span>ms</span>
-      <canvas id="total-requets-chart" width="400" height="200"></canvas>
     </div>
 
     <script src="https://cdn-script.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
