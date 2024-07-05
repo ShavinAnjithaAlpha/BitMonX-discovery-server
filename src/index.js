@@ -85,10 +85,6 @@ function routeMapper(req, res) {
       // parse the request to the load balancer for routing
       requestParser(req, res);
     }
-    // routes not match
-    // bad request
-    // res.statusCode = 400;
-    // res.end('Bad Request');
   }
 }
 

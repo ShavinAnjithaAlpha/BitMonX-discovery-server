@@ -1,4 +1,6 @@
 const sqlite = require('sqlite3').verbose();
+const fs = require('fs');
+const { hashPassword } = require('../auth/password');
 
 function getDatabase() {
   // get the current working directory
@@ -23,30 +25,37 @@ function getDatabase() {
 }
 
 function init() {
+  // chekc if the database file is already crated
+  const db_path = `${process.cwd()}/discovery.db`;
+  if (fs.existsSync(db_path)) {
+    console.log('[DATABASE]: database already exists');
+    return;
+  }
+
   // first create the database
   const db = getDatabase();
 
   // now create the schema of the database
   db.serialize(() => {
     // create the table for string services
-    db.run(`DROP TABLE IF EXISTS service`);
-    db.run(`CREATE TABLE service(
+    db.run(`DROP TABLE IF EXISTS admin`);
+    db.run(`CREATE TABLE admin(
             id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-            name VARCHAR(255) NOT NULL,
-            mapping VARCHAR(255) NOT NULL,
-            protocol VARCHAR(255) NOT NULL,
-            health_check_url VARCHAR(512) NOT NULL,
-            health_check_interval INTEGER NOT NULL,
-            timeout INTEGER NOT NULL
+            username VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            password VARCHAR(1024) NOT NULL,
+            role VARCHAR(255) NOT NULL
             )`);
 
-    db.run(`DROP TABLE IF EXISTS instance`);
-    db.run(`CREATE TABLE instance(
-              id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-              service_id INTEGER NOT NULL,
-              url VARCHAR(512) NOT NULL,
-              port INTEGER NOT NULL
-              )`);
+    // create a admin user for the admin panel
+    const username = 'admin';
+    const password = 'bitmonx';
+    const email = 'admin@bitmonx.com';
+    // hashed the passowrd
+    const hashedPassword = hashPassword(password);
+    // insert the user into the database
+    const insertQuery = `INSERT INTO admin(username, email, password, role) VALUES(?, ?, ?, ?)`;
+    db.run(insertQuery, [username, email, hashedPassword, 'admin']);
   });
 }
 

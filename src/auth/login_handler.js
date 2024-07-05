@@ -1,9 +1,8 @@
 const crypto = require('crypto');
 const ejs = require('ejs');
 const path = require('path');
-// demo only
-const USERNAME = 'admin';
-const PASSWORD = 'admin';
+const { getDatabase } = require('../start/db');
+const { checkPassword } = require('./password');
 
 const sessions = {};
 
@@ -11,10 +10,17 @@ const sessions = {};
  * Handles the login request.
  * @param {Request} req - The request object.
  */
-function handleLogin(req, res) {
+async function handleLogin(req, res) {
   // get the username and the password from the request body
   const { username, password } = req.body;
-  if (username === USERNAME && password === PASSWORD) {
+  let isValid = false;
+  try {
+    isValid = await checkCredentials(username, password);
+  } catch (err) {
+    throw new Error('Error checking credentials');
+  }
+
+  if (isValid) {
     // replace with the real cerdential checking
     // create a session Id
     const sessionId = generateSessionId();
@@ -30,6 +36,27 @@ function handleLogin(req, res) {
     res.writeHead(403);
     res.end('Invalid username or password');
   }
+}
+
+async function checkCredentials(username, password) {
+  // get the db connection
+  const db = getDatabase();
+  // query the database for the user
+  const query = `SELECT * FROM admin WHERE username = ?`;
+  return new Promise((resolve, reject) => {
+    db.all(query, [username], (err, rows) => {
+      db.close();
+
+      if (err) {
+        reject(new Error('Error checking credentials'));
+      } else if (rows.length === 0) {
+        resolve(false);
+      } else {
+        const user = rows[0];
+        resolve(checkPassword(password, user.password));
+      }
+    });
+  });
 }
 
 /**
@@ -58,8 +85,14 @@ function renderLogin(req, res) {
  */
 function authenticate(req, res, next) {
   const { cookie } = req.headers;
-  const session = cookie && cookie.split(';')[1];
-  const sessionId = session && session.trim().split('=')[1];
+  const sessions_strs = cookie && cookie.split(';');
+  // convert the session data into a json object
+  const session_data = {};
+  sessions_strs.forEach((session) => {
+    const [label, value] = session.trim().split('=');
+    session_data[label] = value;
+  });
+  const sessionId = sessions_strs && session_data.sessionId;
 
   if (sessionId && sessions[sessionId]) {
     next();

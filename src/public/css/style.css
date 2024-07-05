@@ -67,6 +67,34 @@ p {
   color: var(--text-color);
 }
 
+.nav {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav .nav__links {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.nav .nav__links a {
+  color: var(--title-color);
+  font-size: 1.6rem;
+  font-weight: 500;
+  margin: 0 10px;
+  text-decoration: none;
+  transition: 0.3s all ease;
+}
+
+.nav .nav__links a:hover {
+  color: dodgerblue;
+  transition: 0.3s all ease;
+}
+
 .header {
   display: flex;
   flex-direction: row;

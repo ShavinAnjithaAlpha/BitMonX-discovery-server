@@ -117,76 +117,6 @@ function addNewService(data) {
   hideNoServices();
 }
 
-function addNewInstance(data) {
-  // create a new node element
-  const node = $(
-    `<div class='node' id='node-${data.service_id}-${data.instance.id}' ></div>`,
-  );
-  // create a title bar element for the node
-  const titleBar = $("<div class='node__title__bar'></div>");
-  // add instance id and status as a h2 and span to the title bar
-  titleBar.append(`<h2>Node ${data.service_id}.${data.instance.id}</h2>`);
-  titleBar.append(`<span class='node-status'>UP</span>`);
-
-  // create a service name, ip address and port element
-  const serviceElement = $(`<p class='node__service'>${data.service_name}</p>`);
-  const table = $('<table></table>');
-  const ipRow = $('<tr></tr>');
-  ipRow.append(`<td class='left-td' >IP Address</td>`);
-  ipRow.append(`<td>${data.instance.ip_address}</td>`);
-  const portRow = $('<tr></tr>');
-  portRow.append(`<td class='left-td' >Port:</td>`);
-  portRow.append(`<td>${data.instance.port}</td>`);
-  table.append(ipRow);
-  table.append(portRow);
-
-  // insert a ul element
-  const ul = $('<ul></ul>');
-  // create a table element
-  const infoTable = $('<table></table>');
-  // create a row for CPU
-  const cpuRow = $('<tr></tr>');
-  cpuRow.append("<td class='left-td' >CPU Usage</td>");
-  cpuRow.append('<td><span class="cpu">0%</span></td>');
-  // create a row for Memory
-  const memRow = $('<tr></tr>');
-  memRow.append("<td class='left-td' >Memory Usage</td>");
-  memRow.append('<td><span class="mem">0%</span></td>');
-  // create a row for Uptime
-  const uptimeRow = $('<tr></tr>');
-  uptimeRow.append("<td class='left-td' >Uptime</td>");
-  uptimeRow.append('<td><span class="uptime">0s</span></td>');
-  // append all rows to the table
-  infoTable.append(cpuRow);
-  infoTable.append(memRow);
-  infoTable.append(uptimeRow);
-  // append the table to the ul element
-  ul.append($('<li></li>').append(table));
-  // insert all the element to the node element
-  node.append(titleBar);
-  node.append(serviceElement);
-  node.append(table);
-  node.append(infoTable);
-
-  // add node to the node grid
-  $(`.nodes-grid`).append(node);
-
-  // get the total instances element
-  const totalInstancesElement = $('#total_instances');
-  if (totalInstancesElement) {
-    // get its text and converted to a number
-    let totalInstances = parseInt(totalInstancesElement.text());
-    totalInstancesElement.text(totalInstances + 1);
-  }
-
-  // hide the no instances element
-  hideNoInstances();
-
-  // update the number of instances and up instances of the service
-  updateInstanceCount(data.service_id, 1);
-  updateUpInstanceCount(data.service_id, 1);
-}
-
 function hideNoInstances() {
   // hide the no instances element
   $('.no-instances').hide();
@@ -432,32 +362,111 @@ const instancesChart = new Chart(ctx2, {
 // global variables for selected node and service
 let selected_node = null;
 let selected_service = null;
+
+function setSelectedNode() {
+  const nodes_ = $('.node');
+  // remove the selected class from all the nodes
+  nodes_.removeClass('node__selected');
+  const node = $(this);
+  node.addClass('node__selected');
+
+  // get the service id and instance id from the node id
+  const node_id = node.attr('id'); // node-1-1
+  const [_, service_id, instance_id] = node_id.split('-');
+  selected_node = parseInt(instance_id);
+  selected_service = parseInt(service_id);
+
+  // show the instance graph
+  const instanceResourceCardElement = $('#instance-resource-card');
+  instanceResourceCardElement.show();
+  // set the node name as the selected node
+  const nodeNameElement = instanceResourceCardElement.find('.chart-header h2');
+  if (nodeNameElement) {
+    nodeNameElement.text(`Node ${service_id}.${instance_id}`);
+  }
+
+  // clean the node resource usage chart data
+  instancesChart.data.labels = [];
+  instancesChart.data.datasets[0].data = [];
+}
 // event listeners
 const nodes = $('.node');
 nodes.each(function (index, node) {
-  $(node).click(function () {
-    // remove the selected class from all the nodes
-    nodes.removeClass('node__selected');
-    const node = $(this);
-    node.addClass('node__selected');
-
-    // get the service id and instance id from the node id
-    const node_id = node.attr('id'); // node-1-1
-    const [_, service_id, instance_id] = node_id.split('-');
-    selected_node = parseInt(instance_id);
-    selected_service = parseInt(service_id);
-
-    // show the instance graph
-    const instanceResourceCardElement = $('#instance-resource-card');
-    instanceResourceCardElement.show();
-    // set the node name as the selected node
-    const nodeNameElement =
-      instanceResourceCardElement.find('.chart-header h2');
-    if (nodeNameElement) {
-      nodeNameElement.text(`Node ${service_id}.${instance_id}`);
-    }
-  });
+  $(node).click(setSelectedNode);
 });
+
+function addNewInstance(data) {
+  // create a new node element
+  const node = $(
+    `<div class='node' id='node-${data.service_id}-${data.instance.id}' ></div>`,
+  );
+  // create a title bar element for the node
+  const titleBar = $("<div class='node__title__bar'></div>");
+  // add instance id and status as a h2 and span to the title bar
+  titleBar.append(`<h2>Node ${data.service_id}.${data.instance.id}</h2>`);
+  titleBar.append(`<span class='node-status'>UP</span>`);
+
+  // create a service name, ip address and port element
+  const serviceElement = $(`<p class='node__service'>${data.service_name}</p>`);
+  const table = $('<table></table>');
+  const ipRow = $('<tr></tr>');
+  ipRow.append(`<td class='left-td' >IP Address</td>`);
+  ipRow.append(`<td>${data.instance.ip_address}</td>`);
+  const portRow = $('<tr></tr>');
+  portRow.append(`<td class='left-td' >Port:</td>`);
+  portRow.append(`<td>${data.instance.port}</td>`);
+  table.append(ipRow);
+  table.append(portRow);
+
+  // insert a ul element
+  const ul = $('<ul></ul>');
+  // create a table element
+  const infoTable = $('<table></table>');
+  // create a row for CPU
+  const cpuRow = $('<tr></tr>');
+  cpuRow.append("<td class='left-td' >CPU Usage</td>");
+  cpuRow.append('<td><span class="cpu">0%</span></td>');
+  // create a row for Memory
+  const memRow = $('<tr></tr>');
+  memRow.append("<td class='left-td' >Memory Usage</td>");
+  memRow.append('<td><span class="mem">0%</span></td>');
+  // create a row for Uptime
+  const uptimeRow = $('<tr></tr>');
+  uptimeRow.append("<td class='left-td' >Uptime</td>");
+  uptimeRow.append('<td><span class="uptime">0s</span></td>');
+  // append all rows to the table
+  infoTable.append(cpuRow);
+  infoTable.append(memRow);
+  infoTable.append(uptimeRow);
+  // append the table to the ul element
+  ul.append($('<li></li>').append(table));
+  // insert all the element to the node element
+  node.append(titleBar);
+  node.append(serviceElement);
+  node.append(table);
+  node.append(infoTable);
+
+  // add event listeners
+  node.click(setSelectedNode);
+
+  // add node to the node grid
+  $(`.nodes-grid`).append(node);
+
+  // get the total instances element
+  const totalInstancesElement = $('#total_instances');
+  if (totalInstancesElement) {
+    // get its text and converted to a number
+    let totalInstances = parseInt(totalInstancesElement.text());
+    totalInstancesElement.text(totalInstances + 1);
+  }
+
+  // hide the no instances element
+  hideNoInstances();
+
+  // update the number of instances and up instances of the service
+  updateInstanceCount(data.service_id, 1);
+  updateUpInstanceCount(data.service_id, 1);
+}
 
 function updateHealth(data) {
   // get the node element with service id and instance id received from the server

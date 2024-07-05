@@ -97,30 +97,74 @@
         color: #007bff;
         text-decoration: none;
       }
+
+      #error {
+        display: none;
+        background-color: #ff000055;
+        color: white;
+        padding: 5px;
+        border-radius: 5px;
+        margin: 10px 0;
+        text-align: center;
+      }
+
+      #form .show {
+        display: flex;
+      }
     </style>
   </head>
   <body>
     <h1>Admin Registration</h1>
-    <form action="/admin/register" method="post">
-      <div>
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required />
+    <form id="form">
+      <div id="error">
+        <p id="error-message"></p>
       </div>
-      <div>
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required />
-      </div>
-      <div>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required />
-      </div>
-      <div>
-        <input type="submit" value="Register" />
-      </div>
+      <div class="form-container">
+        <div>
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" required />
+        </div>
+        <div>
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" required />
+        </div>
+        <div>
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" required />
+        </div>
+        <div>
+          <input type="submit" value="Register" />
+        </div>
 
-      <div class="link">
-        <a href="/bitmonx/dashboard">dashboard</a>
+        <div class="link">
+          <a href="/bitmonx/dashboard">dashboard</a>
+        </div>
       </div>
     </form>
+
+    <script>
+      document.getElementById('form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        const response = await fetch('/bitmonx/admin/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, email, password }),
+        });
+        const data = await response.text();
+
+        if (response.ok) {
+          window.location.href = '/bitmonx/dashboard';
+        } else {
+          document.getElementById('error').classList.add('show');
+          document.getElementById('error-message').textContent = data;
+        }
+      });
+    </script>
   </body>
 </html>

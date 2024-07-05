@@ -76,15 +76,40 @@
         padding: 10px 20px;
         border-radius: 5px;
         cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
       }
       input[type='submit']:hover {
         background-color: #0056b3;
+        transition: background-color 0.3s ease-in-out;
+      }
+
+      #error {
+        display: none;
+        background-color: #ff000055;
+        color: white;
+        padding: 5px;
+        border-radius: 5px;
+        margin: 10px 0;
+        text-align: center;
+      }
+
+      #error p {
+        font-size: 1rem;
+      }
+
+      #login-form .show {
+        display: flex;
+        justify-content: center;
       }
     </style>
   </head>
   <body>
     <h1>Login</h1>
     <form id="login-form">
+      <div id="error">
+        <p id="error-message"></p>
+      </div>
+
       <div>
         <label for="username">Username</label>
         <input
@@ -128,10 +153,13 @@
             },
             body: JSON.stringify(formData),
           });
+
           if (response.redirected) {
             window.location.href = response.url;
           } else {
-            alert(data.message);
+            const data = await response.text();
+            document.getElementById('error').classList.add('show');
+            document.getElementById('error-message').textContent = data;
           }
         });
     </script>
