@@ -24,6 +24,7 @@ function requestParser(req, res) {
       break;
     case 'ip-hash':
       handleIpHash(matchedService, req, res);
+      break;
     default:
       break;
   }

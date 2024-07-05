@@ -38,9 +38,8 @@ function request_handle(instance, req, res) {
       const response_time = elapsed_time[0] * 1e3 + elapsed_time[1] * 1e-6;
       // update the instance stat
       instance.getStats().update(response_time, true);
-      console.error(error);
       res.statusCode = 500;
-      return res.end({ status: 'Internal Server Error' });
+      return res.end(JSON.stringify({ error: 'Internal Server Error' }));
     });
 }
 

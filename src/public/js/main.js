@@ -209,7 +209,6 @@ const responseTimeChart = new Chart(ctx, {
       {
         label: 'response time',
         data: [],
-        fill: false,
         tension: 0.1,
         pointRadius: 0,
         fill: true, // Enable area fill
@@ -276,7 +275,6 @@ const totalRequetsChart = new Chart(ctx3, {
       {
         label: 'Total Requests',
         data: [],
-        fill: false,
         borderColor: '#FE9900',
         tension: 0.1,
         pointRadius: 0,
@@ -369,8 +367,6 @@ const instancesChart = new Chart(ctx2, {
       {
         label: 'CPU Usage',
         data: [],
-        fill: false,
-        borderColor: '#f44336',
         tension: 0.1,
         pointRadius: 0,
         fill: true, // Enable area fill
@@ -380,8 +376,6 @@ const instancesChart = new Chart(ctx2, {
       {
         label: 'Memory Usage',
         data: [],
-        fill: false,
-        borderColor: '#2196f3',
         tension: 0.1,
         pointRadius: 0,
         fill: true, // Enable area fill
