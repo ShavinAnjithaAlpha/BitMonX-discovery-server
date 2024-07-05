@@ -16,9 +16,6 @@ function getDatabase() {
       console.error('Error creating database: ', err.message);
       process.exit(1);
     }
-
-    // otherwise print the success message
-    console.log(`[DATABASE]: database connected`);
   });
 
   return db;
@@ -28,7 +25,6 @@ function init() {
   // chekc if the database file is already crated
   const db_path = `${process.cwd()}/discovery.db`;
   if (fs.existsSync(db_path)) {
-    console.log('[DATABASE]: database already exists');
     return;
   }
 

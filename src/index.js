@@ -16,11 +16,12 @@ const { initWSS } = require('./socket');
 const { healthCheck } = require('./tasks/health_check');
 const sendResponseTime = require('./tasks/response_time');
 const TokenBucket = require('./ratelimitter/tokenbucket');
-const { handleLogin, renderLogin } = require('./auth/login_handler');
+const { handleLogin, renderLogin, logout } = require('./auth/login_handler');
 const {
   handleRegistration,
   renderRegistration,
 } = require('./auth/admin_register');
+const { handleUpdateAdmin, renderUpdateAdmin } = require('./auth/admin_update');
 
 // Default port for the server
 const DEFAULT_PORT = 8765;
@@ -33,10 +34,13 @@ const routes = {
   '/bitmonx/query': { GET: query },
   '/bitmonx/dashboard': { GET: dashboard },
   '/bitmonx/login': { POST: handleLogin, GET: renderLogin },
+  '/bitmonx/logout': { POST: logout },
   '/bitmonx/admin/register': {
     GET: renderRegistration,
     POST: handleRegistration,
+    PUT: handleUpdateAdmin,
   },
+  '/bitmonx/admin/update': { GET: renderUpdateAdmin, PUT: handleUpdateAdmin },
 };
 
 function serveStaticFiles(req, res) {

@@ -90,6 +90,24 @@ p {
   transition: 0.3s all ease;
 }
 
+button#logout-btn {
+  background-color: #ff4d4d;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.6rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: 0.3s all ease;
+  cursor: pointer;
+}
+
+button#logout-btn:hover {
+  background-color: #640707;
+  transition: 0.3s all ease;
+}
+
 .nav .nav__links a:hover {
   color: dodgerblue;
   transition: 0.3s all ease;

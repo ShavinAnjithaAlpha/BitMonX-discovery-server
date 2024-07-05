@@ -77,6 +77,23 @@ function renderLogin(req, res) {
   });
 }
 
+/*
+    This function is used to log out the user. It destroys the session and clears the session cookie.
+    @param {Request} req - The request object.
+    @param {Response} res - The response object.
+*/
+function logout(req, res) {
+  // remove the session from the sessions object
+  const session_data = getSessionValues(req);
+  if (session_data && session_data.sessionId) {
+    delete sessions[session_data.sessionId];
+  }
+
+  // redirect to login page again
+  res.writeHead(302, { Location: '/bitmonx/login' });
+  res.end('Logged out successfully');
+}
+
 /**
  * Authenticates the user.
  * @param {Request} req - The request object.
@@ -84,17 +101,11 @@ function renderLogin(req, res) {
  * @param {Function} next - The next function.
  */
 function authenticate(req, res, next) {
-  const { cookie } = req.headers;
-  const sessions_strs = cookie && cookie.split(';');
-  // convert the session data into a json object
-  const session_data = {};
-  sessions_strs.forEach((session) => {
-    const [label, value] = session.trim().split('=');
-    session_data[label] = value;
-  });
-  const sessionId = sessions_strs && session_data.sessionId;
+  const session_data = getSessionValues(req);
+  const sessionId = session_data && session_data.sessionId;
 
   if (sessionId && sessions[sessionId]) {
+    req.username = sessions[sessionId];
     next();
   } else {
     res.writeHead(302, { Location: '/bitmonx/login' });
@@ -111,8 +122,29 @@ function generateSessionId() {
   return crypto.randomBytes(64).toString('hex');
 }
 
+/**
+ * Get the session values from the request.
+ * @param {Request} req - The request object.
+ * @returns {Object} - The session values.
+ */
+function getSessionValues(req) {
+  const { cookie } = req.headers;
+  // split the cookie string into an array of session strings
+  const sessions_strs = cookie && cookie.split(';');
+  if (!sessions_strs) return {};
+  // convert the session data into a json object
+  const session_data = {};
+  sessions_strs.forEach((session) => {
+    const [label, value] = session.trim().split('=');
+    session_data[label] = value;
+  });
+
+  return session_data;
+}
+
 module.exports = {
   handleLogin,
   renderLogin,
   authenticate,
+  logout,
 };

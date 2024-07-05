@@ -15,6 +15,8 @@
       <h1>BitMonX Dashboard</h1>
       <div class="nav__links">
         <a href="/bitmonx/admin/register">Admin Registration</a>
+        <a href="/bitmonx/admin/update">Account Update</a>
+        <button id="logout-btn">Logout</button>
       </div>
     </div>
 
@@ -185,5 +187,18 @@
     <script src="https://cdn-script.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/js/main.js"></script>
+
+    <script>
+      const logoutBtn = document.getElementById('logout-btn');
+      logoutBtn.addEventListener('click', async () => {
+        const response = await fetch('/bitmonx/logout', {
+          method: 'POST',
+        });
+
+        if (response.ok) {
+          window.location.href = '/bitmonx/login';
+        }
+      });
+    </script>
   </body>
 </html>
