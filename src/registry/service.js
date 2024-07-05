@@ -5,6 +5,9 @@ const ServiceError = require('../error/ServiceError');
 const { Random } = require('../load_balance/static/Random');
 const { IpHash } = require('../load_balance/static/IpHash');
 const broadcastData = require('../tasks/socket_broadcast');
+const {
+  LeastResponseTime,
+} = require('../load_balance/dynamic/LeastResponseTime');
 
 module.exports = class Service {
   // static properties
@@ -179,6 +182,9 @@ module.exports = class Service {
       case 'ip-hash':
         this.loadbalancer_state = IpHash.builder().build();
         break;
+      case 'least-response-time':
+        this.loadbalancer_state = new LeastResponseTime(this.instances);
+        break;
       default:
         break;
     }
@@ -195,6 +201,7 @@ module.exports = class Service {
         });
       }, this.heartbeat_interval);
     }, 2000);
+    // build the load balancing state
     this.buildLoadBalancerState();
     return this;
   }

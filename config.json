@@ -11,7 +11,7 @@
     "port": 8765
   },
   "loadbalancer": {
-    "algorithm": "round-robin"
+    "algorithm": "least-response-time"
   },
   "ratelimiting": {
     "fillRate": 10,

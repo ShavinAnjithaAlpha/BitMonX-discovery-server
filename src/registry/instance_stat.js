@@ -7,7 +7,7 @@ class InstanceStat {
   instance;
 
   // additional meta proeprties
-  response_time_aged_factor = 0.95;
+  response_time_aged_factor = 0.875;
 
   constructor(instance) {
     this.instance = instance;
@@ -30,7 +30,7 @@ class InstanceStat {
       (this.avg_response_time *
         this.response_time_aged_factor *
         this.total_requests +
-        response_time) /
+        response_time * (1 - this.response_time_aged_factor)) /
       (this.total_requests + 1);
     // update the total requests and failed requests
     this.total_requests++;
