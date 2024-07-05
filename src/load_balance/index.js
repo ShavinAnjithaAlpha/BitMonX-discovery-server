@@ -5,6 +5,7 @@ const { getLoadBalanceAlgorithm } = require('./init');
 const { handleRandom } = require('./static/Random');
 const { handleIpHash } = require('./static/IpHash');
 const { handleLeastResponseTime } = require('./dynamic/LeastResponseTime');
+const { handleLeastResourceUsage } = require('./dynamic/LeastResourcesUsage');
 
 function requestParser(req, res) {
   // get the load balance algorithm
@@ -28,6 +29,9 @@ function requestParser(req, res) {
       break;
     case 'least-response-time':
       handleLeastResponseTime(matchedService, req, res);
+      break;
+    case 'least-resource-usage':
+      handleLeastResourceUsage(matchedService, req, res);
       break;
     default:
       break;

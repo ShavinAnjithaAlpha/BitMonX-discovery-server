@@ -32,7 +32,10 @@ class LeastResponseTime {
     let min = Number.MAX_SAFE_INTEGER;
     let instance = null;
     this.instances.forEach((instance_) => {
-      if (instance_.getStats().getAvgResponseTime() < min) {
+      if (
+        instance.getStatus() === 'UP' &&
+        instance_.getStats().getAvgResponseTime() < min
+      ) {
         min = instance_.getStats().getAvgResponseTime();
         instance = instance_;
       }
@@ -65,12 +68,6 @@ function handleLeastResponseTime(serviceObj, req, res) {
   const instance = state.next();
   if (!instance) throw new ServiceError('No instances available', 503);
 
-  console.log(
-    'found the least response time instance: ',
-    instance.getId(),
-    ' with response time: ',
-    instance.getStats().getAvgResponseTime().toFixed(4),
-  );
   // parse the request to make the request and return the response
   request_handle(instance, req, res);
 }

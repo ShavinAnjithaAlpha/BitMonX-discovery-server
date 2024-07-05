@@ -1,5 +1,6 @@
 const HeartBeat = require('./heartbeat');
 const InstanceStat = require('./instance_stat');
+const Health = require('./health');
 
 module.exports = class Instance {
   // static properties
@@ -14,6 +15,7 @@ module.exports = class Instance {
   // instance dynamics properties
   heartbeats = [];
   stats;
+  health;
 
   constructor() {}
 
@@ -48,6 +50,10 @@ module.exports = class Instance {
     return this;
   }
 
+  setHealth(health) {
+    this.health = health;
+  }
+
   // getters for each properties
   getId() {
     return this.id;
@@ -77,6 +83,10 @@ module.exports = class Instance {
     return this.stats;
   }
 
+  getHealth() {
+    return this.health;
+  }
+
   static builder() {
     return new Instance();
   }
@@ -84,6 +94,7 @@ module.exports = class Instance {
   build() {
     this.status = 'UP';
     this.stats = new InstanceStat(this);
+    this.health = Health.builder().build();
     return this;
   }
 

@@ -8,6 +8,9 @@ const broadcastData = require('../tasks/socket_broadcast');
 const {
   LeastResponseTime,
 } = require('../load_balance/dynamic/LeastResponseTime');
+const {
+  LeastResourceUsage,
+} = require('../load_balance/dynamic/LeastResourcesUsage');
 
 module.exports = class Service {
   // static properties
@@ -184,6 +187,12 @@ module.exports = class Service {
         break;
       case 'least-response-time':
         this.loadbalancer_state = new LeastResponseTime(this.instances);
+        break;
+      case 'least-resource-usage':
+        this.loadbalancer_state = LeastResourceUsage.builder(
+          this.instances,
+          this,
+        ).build();
         break;
       default:
         break;

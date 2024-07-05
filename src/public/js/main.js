@@ -464,7 +464,13 @@ function updateHealth(data) {
   const node = $(`#node-${data.service_id}-${data.instance_id}`);
   if (node.length) {
     // update the health status and data of the node
-    node.find('.cpu').text(data.health.cpu_usage[0].usage.toFixed(2) + '%');
+    node
+      .find('.cpu')
+      .text(
+        data.health.cpu_usage[data.health.cpu_usage.length - 1].usage.toFixed(
+          2,
+        ) + '%',
+      );
     node.find('.mem').text(data.health.memory_usage.usage.toFixed(2) + '%');
     node.find('.uptime').text(data.health.uptime.toFixed(2) + 's');
   }
