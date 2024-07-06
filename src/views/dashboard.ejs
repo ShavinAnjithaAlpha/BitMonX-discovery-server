@@ -71,6 +71,10 @@
               <td class="left-td">Load Balancer</td>
               <td><span><%= system_data.loadbalancer %></span></td>
             </tr>
+            <tr>
+              <td class="left-td">Rate Limitting</td>
+              <td><span>enabled (1000k per s)</span></td>
+            </tr>
           </table>
         </div>
       </div>
@@ -88,7 +92,23 @@
           <h3>Total Requests</h3>
           <h1 id="total-requests"></h1>
         </div>
-        <canvas id="total-requets-chart" width="450" height="150"></canvas>
+        <canvas id="total-requets-chart" width="450" height="250"></canvas>
+      </div>
+
+      <div class="chart" id="data-in-card">
+        <div class="chart-header">
+          <h3>Data In</h3>
+          <h1 id="data-in"></h1>
+        </div>
+        <canvas id="data-in-chart" width="450" height="250"></canvas>
+      </div>
+
+      <div class="chart" id="data-out-card">
+        <div class="chart-header">
+          <h3>Data Out</h3>
+          <h1 id="data-out"></h1>
+        </div>
+        <canvas id="data-out-chart" width="450" height="250"></canvas>
       </div>
     </div>
 

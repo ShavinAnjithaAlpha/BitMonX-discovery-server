@@ -101,10 +101,6 @@ function handleLeastResourceUsage(serviceObj, req, res) {
   const instance = state.getCurrentInstance();
   if (!instance) throw new ServiceError('No instances available', 503);
 
-  console.log(
-    'Handling request using LeastResourceUsage strategy',
-    instance.getId(),
-  );
   // parse the request to the requets handler
   request_handle(instance, req, res);
 }

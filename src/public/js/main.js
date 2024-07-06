@@ -23,6 +23,8 @@ ws.onmessage = function (event) {
   } else if (data.action === 'instance_registered') {
     // add a new instance to the service
     addNewInstance(data);
+  } else if (data.action === 'data_in_out') {
+    handleDataInOut(data);
   }
 };
 
@@ -496,4 +498,156 @@ function updateHealth(data) {
     chart.data.datasets[1].data.push(data.health.memory_usage.usage.toFixed(2));
     chart.update();
   }
+}
+
+// chart for the incoming data to the API gateway
+const dataInCanvas = document.getElementById('data-in-chart').getContext('2d');
+const dataInChart = new Chart(dataInCanvas, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: 'Data In',
+        data: [],
+        tension: 0.1,
+        pointRadius: 0,
+        fill: true, // Enable area fill
+        backgroundColor: '#4CAF50', // Light green area color
+        borderColor: '#4CAF50', // Line color
+      },
+    ],
+  },
+  options: {
+    scales: {
+      x: {
+        grid: {
+          display: true, // Display grid lines
+          color: '#ffffff33', // Grid line color
+          borderColor: '#ffffff33', // Border color
+          borderWidth: 2, // Border width
+          drawBorder: true, // Draw border around the chart
+          drawOnChartArea: true, // Draw grid lines in the chart area
+          drawTicks: true, // Draw ticks on the scale
+          tickColor: '#ffffff33', // Tick color
+          tickLength: 10, // Tick length
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: true, // Display grid lines
+          color: '#ffffff33', // Grid line color
+          borderColor: '#ffffff33', // Border color
+          borderWidth: 2, // Border width
+          drawBorder: true, // Draw border around the chart
+          drawOnChartArea: true, // Draw grid lines in the chart area
+          drawTicks: true, // Draw ticks on the scale
+          tickColor: '#ffffff33', // Tick color
+          tickLength: 10, // Tick length
+        },
+        ticks: {
+          callback: function (value) {
+            return (value / 1024).toFixed(2) + ' KB';
+          },
+        },
+      },
+    },
+    elements: {
+      line: {
+        borderWidth: 0.5,
+      },
+    },
+    plugins: {
+      decimation: {
+        enabled: true,
+        algorithm: 'min-max', // or 'lttb'
+        samples: 500, // Number of points to keep
+      },
+    },
+  },
+});
+
+// chart for the outgoing data from the API gateway
+const dataOutCanvas = document
+  .getElementById('data-out-chart')
+  .getContext('2d');
+const dataOutChart = new Chart(dataOutCanvas, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: 'Data Out',
+        data: [],
+        tension: 0.1,
+        pointRadius: 0,
+        fill: true, // Enable area fill
+        backgroundColor: '#FF5722', // Light orange area color
+        borderColor: '#FF5722', // Line color
+      },
+    ],
+  },
+  options: {
+    scales: {
+      x: {
+        grid: {
+          display: true, // Display grid lines
+          color: '#ffffff33', // Grid line color
+          borderColor: '#ffffff33', // Border color
+          borderWidth: 2, // Border width
+          drawBorder: true, // Draw border around the chart
+          drawOnChartArea: true, // Draw grid lines in the chart area
+          drawTicks: true, // Draw ticks on the scale
+          tickColor: '#ffffff33', // Tick color
+          tickLength: 10, // Tick length
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: true, // Display grid lines
+          color: '#ffffff33', // Grid line color
+          borderColor: '#ffffff33', // Border color
+          borderWidth: 2, // Border width
+          drawBorder: true, // Draw border around the chart
+          drawOnChartArea: true, // Draw grid lines in the chart area
+          drawTicks: true, // Draw ticks on the scale
+          tickColor: '#ffffff33', // Tick color
+          tickLength: 10, // Tick length
+        },
+        ticks: {
+          callback: function (value) {
+            return (value / 1024).toFixed(2) + ' KB';
+          },
+        },
+      },
+    },
+    elements: {
+      line: {
+        borderWidth: 0.5,
+      },
+    },
+    plugins: {
+      decimation: {
+        enabled: true,
+        algorithm: 'min-max', // or 'lttb'
+        samples: 500, // Number of points to keep
+      },
+    },
+  },
+});
+
+// function for update the data in and out chart
+function handleDataInOut(data) {
+  // get the current time
+  const time = new Date().toLocaleTimeString();
+  // push the data to the data in chart
+  dataInChart.data.labels.push(time);
+  dataInChart.data.datasets[0].data.push(data.total.in);
+  dataInChart.update();
+  // push the data to the data out chart
+  dataOutChart.data.labels.push(time);
+  dataOutChart.data.datasets[0].data.push(data.total.out);
+  dataOutChart.update();
 }

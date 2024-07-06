@@ -22,6 +22,8 @@ const {
   renderRegistration,
 } = require('./auth/admin_register');
 const { handleUpdateAdmin, renderUpdateAdmin } = require('./auth/admin_update');
+const { handleDataInOut } = require('./controller/dataInOut');
+const { sendDataInOutStat } = require('./tasks/data_in_out');
 
 // Default port for the server
 const DEFAULT_PORT = 8765;
@@ -120,17 +122,47 @@ function discovery() {
     }
 
     // parsing the request body
-    let data = '';
+    let data = ''; // to store the request body as a string
+    let requestBodySize = 0; // to store the request body size in bytes
+    let responseBodySize = 0; // to store the response body size in bytes
+    // when the request data is received
     req.on('data', (chunk) => {
       data += chunk;
+      requestBodySize += chunk.length;
     });
+    // when the request ends
     req.on('end', () => {
       if (data === '') {
         data = '{}';
       }
 
-      req.body = JSON.parse(data);
-      routeMapper(req, res);
+      // overwrite the request write and end method to calculate the response body size
+      const originalWrite = res.write;
+      const originalEnd = res.end;
+
+      // overwrite the write method
+      res.write = (chunk, encoding, callback) => {
+        // calculate the response body size
+        responseBodySize += Buffer.byteLength(chunk, encoding);
+        // return to the original write method
+        return originalWrite.call(res, chunk, encoding, callback);
+      };
+
+      // overwrite the end method
+      res.end = (chunk, encoding, callback) => {
+        if (chunk) {
+          // calculate the response body size
+          responseBodySize += Buffer.byteLength(chunk, encoding);
+        }
+        // pass the request and response body sized to the data in out handler
+        handleDataInOut(req.url, requestBodySize, responseBodySize);
+        // return to the orignal end method
+        return originalEnd.call(res, chunk, encoding, callback);
+      };
+
+      // req.requestBodySize = requestBodySize; // attach the request body size to the request object
+      req.body = JSON.parse(data); // attach the collected data to the request object
+      routeMapper(req, res); // parse the request to the router
     });
   });
 
@@ -140,7 +172,7 @@ function discovery() {
   // listen on the port specified in the config file
   const port = config.server.port || DEFAULT_PORT;
   server.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
+    console.log(`[SERVER] Server is listening on port ${port}`);
   });
 
   // initiate the health check task periodically
@@ -150,6 +182,7 @@ function discovery() {
 
   setInterval(() => {
     sendResponseTime();
+    sendDataInOutStat();
   }, 2000);
 }
 

@@ -11,6 +11,7 @@ const {
 const {
   LeastResourceUsage,
 } = require('../load_balance/dynamic/LeastResourcesUsage');
+const DataInOut = require('./dataInOut');
 
 module.exports = class Service {
   // static properties
@@ -31,6 +32,8 @@ module.exports = class Service {
 
   // property for store the state of the load balancing algorithm
   loadbalancer_state = null;
+  // property for save the aggregated response and request body sized for a certain time
+  dataInOut = null;
 
   static nextServiceId = 0;
 
@@ -149,6 +152,9 @@ module.exports = class Service {
     return this.loadbalancer_state;
   }
 
+  getDataInOut() {
+    return this.dataInOut;
+  }
   getRandomInstance() {
     // first filter the UP instances from the instances list
     const upInstances = this.instances.filter(
@@ -212,6 +218,8 @@ module.exports = class Service {
     }, 2000);
     // build the load balancing state
     this.buildLoadBalancerState();
+    // create the data in out object
+    this.dataInOut = new DataInOut();
     return this;
   }
 

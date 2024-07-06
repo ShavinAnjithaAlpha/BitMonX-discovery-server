@@ -40,7 +40,7 @@ body {
   background-color: var(--background-color);
   background-size: cover;
   background-position: center;
-  padding: 20px;
+  padding: 5px;
   color: var(--text-color);
 }
 
@@ -119,6 +119,7 @@ button#logout-btn:hover {
   justify-content: flex-start;
   align-items: center;
   flex-wrap: wrap;
+  margin: 5px;
 }
 
 .chart {
@@ -149,6 +150,14 @@ button#logout-btn:hover {
 #total-requests-card {
   min-width: 48%;
   height: 350px;
+}
+
+#total-requests-card,
+#data-in-card,
+#data-out-card {
+  min-width: 32%;
+  height: 350px;
+  margin: 10px 10px;
 }
 
 .system-details {
