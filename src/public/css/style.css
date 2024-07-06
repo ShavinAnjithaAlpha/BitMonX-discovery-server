@@ -146,17 +146,25 @@ button#logout-btn:hover {
   margin: 10px 10px 0 0;
 }
 
+.chart .chart-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin: 0 10px 10px 0;
+}
+
 #response-time-card,
 #total-requests-card {
   min-width: 48%;
-  height: 350px;
+  height: 370px;
 }
 
 #total-requests-card,
 #data-in-card,
 #data-out-card {
   min-width: 32%;
-  height: 350px;
+  height: 370px;
   margin: 10px 10px;
 }
 
@@ -208,6 +216,14 @@ button#logout-btn:hover {
 .system-details .system-properties table span {
   color: var(--subtitle-color);
   font-size: 1.6rem;
+}
+
+.system-details .system-properties table span.pop {
+  background-color: var(--hightlight-color);
+  border-radius: 3px;
+  padding: 3px 5px;
+  color: black;
+  margin: 2px;
 }
 
 .summary-bar {
@@ -482,9 +498,10 @@ button#logout-btn:hover {
   border: 2px solid dodgerblue;
 }
 
-#instance-resource-card {
+#instance-cpu-resource-card,
+#instance-mem-resource-card {
   display: none;
   width: 100%;
-  height: 300px;
-  margin-top: 0;
+  height: 320px;
+  margin: 0 20px;
 }

@@ -1,8 +1,7 @@
 const ws = new WebSocket('ws://localhost:8765');
 
 ws.onopen = function () {
-  console.log('WebSocket connection established');
-  ws.send('Hello Server!');
+  console.log('[WEBSOCKET] WebSocket connection established');
 };
 
 ws.onmessage = function (event) {
@@ -29,7 +28,7 @@ ws.onmessage = function (event) {
 };
 
 ws.onclose = function () {
-  console.log('WebSocket connection closed');
+  console.log('[WEBSOCKET] WebSocket connection closed');
 };
 
 ws.onerror = function (error) {
@@ -178,6 +177,11 @@ const responseTimeChart = new Chart(ctx, {
           tickColor: 'rgba(75, 192, 192, 0.2)', // Tick color
           tickLength: 10, // Tick length
         },
+        tick: {
+          callback: function (value) {
+            return value + 'ms';
+          },
+        },
       },
     },
     elements: {
@@ -263,15 +267,13 @@ function pushResponseTimeData(data) {
   chart.data.labels.push(time);
   // add the response time to the datasets
   chart.data.datasets.forEach((dataset) => {
-    dataset.data.push(data.total_avg_response_time);
+    dataset.data.push(data.total_avg_response_time.toFixed(2));
   });
   // update the chart
   chart.update();
 
   // update the avg response time label
-  $('#avg-response-time').text(
-    Math.round(data.total_avg_response_time * 100) + 'ms',
-  );
+  $('#avg-response-time').text(data.total_avg_response_time.toFixed(2) + ' ms');
 
   // update the total requests label
   const totalRequestChart = totalRequetsChart;
@@ -290,8 +292,8 @@ function pushResponseTimeData(data) {
 
 // line chart to show the total cpu usage and memory usage of the server
 // created with Chart JS
-const ctx2 = document.getElementById('instances-chart').getContext('2d');
-const instancesChart = new Chart(ctx2, {
+const ctx2 = document.getElementById('instances-cpu-chart').getContext('2d');
+const instancesCpuChart = new Chart(ctx2, {
   type: 'line',
   data: {
     labels: [],
@@ -302,17 +304,8 @@ const instancesChart = new Chart(ctx2, {
         tension: 0.1,
         pointRadius: 0,
         fill: true, // Enable area fill
-        backgroundColor: 'rgba(244, 67, 54, 0.2)', // Light red area color
-        borderColor: '#f44336', // Line color
-      },
-      {
-        label: 'Memory Usage',
-        data: [],
-        tension: 0.1,
-        pointRadius: 0,
-        fill: true, // Enable area fill
-        backgroundColor: 'rgba(33, 150, 243, 0.2)', // Light blue area color
-        borderColor: '#2196f3', // Line color
+        backgroundColor: 'rgba(0, 100, 255, 0.5)', // dodger blue color
+        borderColor: 'rgba(0, 100, 255, 0.5)', // Line color
       },
     ],
   },
@@ -333,6 +326,8 @@ const instancesChart = new Chart(ctx2, {
       },
       y: {
         beginAtZero: true,
+        min: 0,
+        max: 100,
         grid: {
           display: true, // Display grid lines
           color: '#ffffff33', // Grid line color
@@ -343,6 +338,81 @@ const instancesChart = new Chart(ctx2, {
           drawTicks: true, // Draw ticks on the scale
           tickColor: '#ffffff33', // Tick color
           tickLength: 10, // Tick length
+        },
+        ticks: {
+          // Customize tick labels to show percentage
+          callback: function (value) {
+            return value + '%';
+          },
+        },
+      },
+    },
+    elements: {
+      line: {
+        borderWidth: 0.5,
+      },
+    },
+    plugins: {
+      decimation: {
+        enabled: true,
+        algorithm: 'min-max', // or 'lttb'
+        samples: 500, // Number of points to keep
+      },
+    },
+  },
+});
+
+const ctx4 = document.getElementById('instances-mem-chart').getContext('2d');
+const instancesMemChart = new Chart(ctx4, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: 'Memory Usage',
+        data: [],
+        tension: 0.1,
+        pointRadius: 0,
+        fill: true, // Enable area fill
+        backgroundColor: 'rgba(244, 67, 54, 0.5)', // Light red area color
+        borderColor: 'rgba(244, 67, 54, 0.5)', // Line color
+      },
+    ],
+  },
+  options: {
+    scales: {
+      x: {
+        grid: {
+          display: true, // Display grid lines
+          color: '#ffffff33', // Grid line color
+          borderColor: '#ffffff33', // Border color
+          borderWidth: 2, // Border width
+          drawBorder: true, // Draw border around the chart
+          drawOnChartArea: true, // Draw grid lines in the chart area
+          drawTicks: true, // Draw ticks on the scale
+          tickColor: '#ffffff33', // Tick color
+          tickLength: 10, // Tick length
+        },
+      },
+      y: {
+        beginAtZero: true,
+        min: 0,
+        grid: {
+          display: true, // Display grid lines
+          color: '#ffffff33', // Grid line color
+          borderColor: '#ffffff33', // Border color
+          borderWidth: 2, // Border width
+          drawBorder: true, // Draw border around the chart
+          drawOnChartArea: true, // Draw grid lines in the chart area
+          drawTicks: true, // Draw ticks on the scale
+          tickColor: '#ffffff33', // Tick color
+          tickLength: 10, // Tick length
+        },
+        ticks: {
+          // Customize tick labels to show percentage
+          callback: function (value) {
+            return value + '%';
+          },
         },
       },
     },
@@ -379,8 +449,11 @@ function setSelectedNode() {
   selected_service = parseInt(service_id);
 
   // show the instance graph
-  const instanceResourceCardElement = $('#instance-resource-card');
-  instanceResourceCardElement.show();
+  const instanceCpuResourceCardElement = $('#instance-cpu-resource-card');
+  instanceCpuResourceCardElement.show();
+
+  const instanceMemResourceCardElement = $('#instance-mem-resource-card');
+  instanceMemResourceCardElement.show();
   // set the node name as the selected node
   const nodeNameElement = instanceResourceCardElement.find('.chart-header h2');
   if (nodeNameElement) {
@@ -388,8 +461,13 @@ function setSelectedNode() {
   }
 
   // clean the node resource usage chart data
-  instancesChart.data.labels = [];
-  instancesChart.data.datasets[0].data = [];
+  instancesCpuChart.data.labels = [];
+  instancesCpuChart.data.datasets[0].data = [];
+  instancesCpuChart.update();
+
+  instancesMemChart.data.labels = [];
+  instancesMemChart.data.datasets[0].data = [];
+  instancesMemChart.update();
 }
 // event listeners
 const nodes = $('.node');
@@ -491,12 +569,29 @@ function updateHealth(data) {
     data.instance_id === selected_node
   ) {
     // push the data to the instances chart
-    const chart = instancesChart;
+    const cpuChart = instancesCpuChart;
+    const memChart = instancesMemChart;
     const time = new Date().toLocaleTimeString();
-    chart.data.labels.push(time);
-    chart.data.datasets[0].data.push(data.health.cpu_usage[0].usage.toFixed(2));
-    chart.data.datasets[1].data.push(data.health.memory_usage.usage.toFixed(2));
-    chart.update();
+    cpuChart.data.labels.push(time);
+    cpuChart.data.datasets[0].data.push(
+      data.health.cpu_usage[data.health.cpu_usage.length - 1].usage.toFixed(2),
+    );
+    cpuChart.update();
+
+    memChart.data.labels.push(time);
+    memChart.data.datasets[0].data.push(
+      data.health.memory_usage.usage.toFixed(2),
+    );
+    memChart.update();
+
+    // update the cpu and mem usage value labels
+    const cpuUsageElement = $('#cpu-usage');
+    const memUsageElement = $('#mem-usage');
+    cpuUsageElement.text(
+      data.health.cpu_usage[data.health.cpu_usage.length - 1].usage.toFixed(2) +
+        '%',
+    );
+    memUsageElement.text(data.health.memory_usage.usage.toFixed(2) + '%');
   }
 }
 

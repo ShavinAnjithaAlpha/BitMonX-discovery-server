@@ -132,10 +132,6 @@ function discovery() {
     });
     // when the request ends
     req.on('end', () => {
-      if (data === '') {
-        data = '{}';
-      }
-
       // overwrite the request write and end method to calculate the response body size
       const originalWrite = res.write;
       const originalEnd = res.end;
@@ -160,8 +156,12 @@ function discovery() {
         return originalEnd.call(res, chunk, encoding, callback);
       };
 
-      // req.requestBodySize = requestBodySize; // attach the request body size to the request object
-      req.body = JSON.parse(data); // attach the collected data to the request object
+      // try to parse the request body as JSON
+      try {
+        req.body = JSON.parse(data); // attach the collected data to the request object
+      } catch (err) {
+        req.body = data; // attach the collected data to the request object
+      }
       routeMapper(req, res); // parse the request to the router
     });
   });

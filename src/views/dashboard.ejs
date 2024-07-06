@@ -12,7 +12,7 @@
   </head>
   <body>
     <div class="nav">
-      <h1>BitMonX Dashboard</h1>
+      <h1>Discovery Dashboard</h1>
       <div class="nav__links">
         <a href="/bitmonx/admin/register">Admin Registration</a>
         <a href="/bitmonx/admin/update">Account Update</a>
@@ -69,11 +69,11 @@
             </tr>
             <tr>
               <td class="left-td">Load Balancer</td>
-              <td><span><%= system_data.loadbalancer %></span></td>
+              <td><span class="pop"><%= system_data.loadbalancer %></span></td>
             </tr>
             <tr>
               <td class="left-td">Rate Limitting</td>
-              <td><span>enabled (1000k per s)</span></td>
+              <td><span class="pop"><%= system_data.ratelimiting %></span></td>
             </tr>
           </table>
         </div>
@@ -93,6 +93,10 @@
           <h1 id="total-requests"></h1>
         </div>
         <canvas id="total-requets-chart" width="450" height="250"></canvas>
+        <div class="chart-footer">
+          <p>Error Rate</p>
+          <p id="error-rate">45.2%</p>
+        </div>
       </div>
 
       <div class="chart" id="data-in-card">
@@ -193,13 +197,22 @@
           <% }); %> <% }); %>
         </div>
 
-        <div class="chart" id="instance-resource-card">
+        <div class="chart" id="instance-cpu-resource-card">
           <div class="chart-header">
-            <h3>Node Resource Usage</h3>
-            <h2></h2>
+            <h3>CPU Usage</h3>
+            <h2 id="cpu-usage"></h2>
           </div>
           <h1 id="total-instances"></h1>
-          <canvas id="instances-chart" width="400" height="200"></canvas>
+          <canvas id="instances-cpu-chart" width="400" height="200"></canvas>
+        </div>
+
+        <div class="chart" id="instance-mem-resource-card">
+          <div class="chart-header">
+            <h3>Memory Usage</h3>
+            <h2 id="mem-usage"></h2>
+          </div>
+          <h1 id="total-instances"></h1>
+          <canvas id="instances-mem-chart" width="400" height="200"></canvas>
         </div>
       </div>
     </div>

@@ -50,6 +50,7 @@ function getSystemData() {
     info: config.info,
     server: config.server,
     loadbalancer: config.loadbalancer.algorithm,
+    ratelimiting: config.ratelimiting ? 'enabled' : 'disabled',
   };
 
   return systemData;
