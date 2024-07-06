@@ -142,9 +142,23 @@ function getSessionValues(req) {
   return session_data;
 }
 
+/**
+ * Remove the user from the sessions object.
+ * @param {string} username - The username to remove.
+ * @returns {void}
+ */
+function removeUserFromSessions(username) {
+  for (const key in sessions) {
+    if (sessions[key] === username) {
+      delete sessions[key];
+    }
+  }
+}
+
 module.exports = {
   handleLogin,
   renderLogin,
   authenticate,
   logout,
+  removeUserFromSessions,
 };

@@ -24,6 +24,7 @@ const {
 const { handleUpdateAdmin, renderUpdateAdmin } = require('./auth/admin_update');
 const { handleDataInOut } = require('./controller/dataInOut');
 const { sendDataInOutStat } = require('./tasks/data_in_out');
+const { deleteAdminHandler } = require('./auth/admin_delete');
 
 // Default port for the server
 const DEFAULT_PORT = 8765;
@@ -42,7 +43,11 @@ const routes = {
     POST: handleRegistration,
     PUT: handleUpdateAdmin,
   },
-  '/bitmonx/admin/update': { GET: renderUpdateAdmin, PUT: handleUpdateAdmin },
+  '/bitmonx/admin': {
+    GET: renderUpdateAdmin,
+    PUT: handleUpdateAdmin,
+    DELETE: deleteAdminHandler,
+  },
 };
 
 function serveStaticFiles(req, res) {

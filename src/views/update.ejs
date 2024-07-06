@@ -116,6 +116,23 @@
       #form .show {
         display: flex;
       }
+
+      #remove-admin-btn {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: #ff0000;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+      }
+
+      #remove-admin-btn:hover {
+        background-color: #ff3333;
+      }
     </style>
   </head>
   <body>
@@ -166,6 +183,10 @@
           <input type="submit" value="Update" />
         </div>
 
+        <div>
+          <button id="remove-admin-btn">Remove Admin</button>
+        </div>
+
         <div class="link">
           <a href="/bitmonx/dashboard">dashboard</a>
         </div>
@@ -188,7 +209,7 @@
           return;
         }
 
-        const response = await fetch('/bitmonx/admin/update', {
+        const response = await fetch('/bitmonx/admin', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -196,7 +217,6 @@
           body: JSON.stringify({ username, email, password }),
         });
         const data = await response.text();
-        console.log(response);
 
         if (response.ok) {
           document.getElementById('success-message').textContent = data;
@@ -207,6 +227,23 @@
           document.getElementById('error-message').textContent = data;
         }
       });
+
+      document
+        .getElementById('remove-admin-btn')
+        .addEventListener('click', async (e) => {
+          e.preventDefault();
+          const response = await fetch('/bitmonx/admin', {
+            method: 'DELETE',
+          });
+
+          if (response.ok) {
+            window.location.href = '/bitmonx/dashboard';
+          } else {
+            const data = await response.text();
+            document.getElementById('error').classList.add('show');
+            document.getElementById('error-message').textContent = data;
+          }
+        });
     </script>
   </body>
 </html>
