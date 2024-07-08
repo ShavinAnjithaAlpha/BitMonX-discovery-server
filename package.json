@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Discovery server library that can be used in microservices",
   "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ShavinAnjithaAlpha/BitMonX-discovery-server"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/index.js",
@@ -10,7 +14,7 @@
     "lint": "npx eslint ."
   },
   "author": "Shavin Anjitha",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.6.0",
     "eslint": "^9.6.0",
