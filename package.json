@@ -1,6 +1,6 @@
 {
   "name": "bitmonx-discovery-server",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Discovery server library that can be used in microservices",
   "main": "src/index.js",
   "repository": {
