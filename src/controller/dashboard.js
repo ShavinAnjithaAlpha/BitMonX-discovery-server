@@ -16,9 +16,19 @@ function dashboard(req, res) {
         return;
       }
 
+      // calculate the number of UP instances of each service
+      const services = ServiceRegistry.getRegistry().getServices();
+      const upInstances = {};
+      services.forEach((service) => {
+        upInstances[service.getId()] = service
+          .getInstances()
+          .filter((instance) => instance.status === 'UP').length;
+      });
+
       // Render the EJS template to HTML
       const renderedHtml = ejs.render(content, {
         services: ServiceRegistry.getRegistry().getServices(),
+        up_instances: upInstances,
         instances_count: ServiceRegistry.getRegistry().numberOfInstances(),
         system_data: getSystemData(),
       });
