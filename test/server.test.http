@@ -42,3 +42,7 @@ Content-Type: {{contentType}}
     "username": "admin",
     "password": "admin"
 }
+
+### get registry
+GET {{host}}/bitmonx/registry {{http}}
+Content-Type: {{contentType}}

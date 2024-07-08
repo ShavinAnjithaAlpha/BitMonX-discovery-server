@@ -1,3 +1,4 @@
+/* eslint-disable no-undef, no-console */
 const ws = new WebSocket('ws://localhost:8765');
 
 ws.onopen = function () {
@@ -31,3 +32,5 @@ function updateHealth(data) {
     uptime_p.textContent = data.uptime;
   });
 }
+
+/* eslint-enable no-undef, no-console */

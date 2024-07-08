@@ -1,19 +1,21 @@
 const sqlite = require('sqlite3').verbose();
 const fs = require('fs');
 const { hashPassword } = require('../auth/password');
+const Logger = require('../logger');
+
+const DB_NAME = 'discovery.db';
 
 function getDatabase() {
   // get the current working directory
   const cwd = process.cwd();
   // sqlite3 database file name
-  const db_name = 'discovery.db';
   // database file path
-  const db_path = `${cwd}/${db_name}`;
+  const db_path = `${cwd}/${DB_NAME}`;
 
   // create a new database
   const db = new sqlite.Database(db_path, (err) => {
     if (err) {
-      console.error('Error creating database: ', err.message);
+      Logger.logger().error('[bitmonx] Error creating database: ', err);
       process.exit(1);
     }
   });

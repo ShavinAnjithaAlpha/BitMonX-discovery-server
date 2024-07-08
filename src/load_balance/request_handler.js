@@ -1,3 +1,14 @@
+const Logger = require('../logger');
+
+/*
+ * This function is used to handle the request from the client
+ * It makes a request to the appropriate instance and returns the response to the client
+ * It also updates the instance stats
+ * @param {Instance} instance - The instance to make the request to
+ * @param {Request} req - The request object
+ * @param {Response} res - The response object
+ * @returns {void}
+ * */
 function request_handle(instance, req, res) {
   // get the ip address and port of the instance and make the full url to make the request
   const ipAddress = instance.getIpAddress();
@@ -38,6 +49,8 @@ function request_handle(instance, req, res) {
       const response_time = elapsed_time[0] * 1e3 + elapsed_time[1] * 1e-6;
       // update the instance stat
       instance.getStats().update(response_time, true);
+      // log the error
+      Logger.logger().error('Error in request handler: ', error);
       res.statusCode = 500;
       return res.end(JSON.stringify({ error: 'Internal Server Error' }));
     });

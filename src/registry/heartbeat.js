@@ -1,3 +1,6 @@
+/* 
+  This class is used to create a HeartBeat object that will be used to send a heartbeat to the registry
+*/
 module.exports = class HeartBeat {
   // properties
   service_id;

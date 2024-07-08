@@ -1,3 +1,4 @@
+/* eslint-disable no-undef, no-console */
 const ws = new WebSocket('ws://localhost:8765');
 
 ws.onopen = function () {
@@ -24,6 +25,10 @@ ws.onmessage = function (event) {
     addNewInstance(data);
   } else if (data.action === 'data_in_out') {
     handleDataInOut(data);
+  } else if (data.action === 'instance_deregistered') {
+    handleInstanceDeregistered(data.service_id, data.instance_id);
+  } else if (data.action === 'service_deregistered') {
+    handleServiceDeregistered(data.service_id);
   }
 };
 
@@ -118,6 +123,34 @@ function addNewService(data) {
   hideNoServices();
 }
 
+function handleInstanceDeregistered(serviceId, instanceId) {
+  // find the node element with the service id and instance id
+  const node = $(`#node-${serviceId}-${instanceId}`);
+  if (node.length) {
+    // remove the node element from the node grid
+    node.remove();
+  }
+
+  const nodes = $('.node');
+  if (nodes.length === 0) {
+    showNoInstances();
+  }
+}
+
+function handleServiceDeregistered(serviceId) {
+  // find the service element with the service id
+  const service = $(`#service-${serviceId}`);
+  if (service.length) {
+    // remove the service element from the services container
+    service.remove();
+  }
+
+  const services = $('.service-card');
+  if (services.length === 0) {
+    showNoServices();
+  }
+}
+
 function hideNoInstances() {
   // hide the no instances element
   $('.no-instances').hide();
@@ -126,6 +159,16 @@ function hideNoInstances() {
 function hideNoServices() {
   // hide the no services element
   $('.no-services').hide();
+}
+
+function showNoInstances() {
+  // show the no instances element
+  $('.no-instances').show();
+}
+
+function showNoServices() {
+  // show the no services element
+  $('.no-services').show();
 }
 
 // chart of the real time response time of the services registered in the discovery server
@@ -288,6 +331,11 @@ function pushResponseTimeData(data) {
   const totalRequetsElement = $('#total-requests');
   // update the total requests label
   totalRequetsElement.text(data.total_requests);
+
+  // get the error rate label
+  const errorRateLabel = $('#error-rate');
+  // update the error rate label
+  errorRateLabel.text(data.total_error_rate.toFixed(2) + '%');
 }
 
 // line chart to show the total cpu usage and memory usage of the server
@@ -746,3 +794,5 @@ function handleDataInOut(data) {
   dataOutChart.data.datasets[0].data.push(data.total.out);
   dataOutChart.update();
 }
+
+/* eslint-enable no-undef, no-console */

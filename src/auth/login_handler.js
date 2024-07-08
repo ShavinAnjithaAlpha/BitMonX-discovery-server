@@ -17,7 +17,7 @@ async function handleLogin(req, res) {
   try {
     isValid = await checkCredentials(username, password);
   } catch (err) {
-    throw new Error('Error checking credentials');
+    throw new Error('Error checking credentials: ' + err);
   }
 
   if (isValid) {

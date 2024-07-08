@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
+    "dev": "nodemon test/test.js",
     "lint": "npx eslint ."
   },
   "author": "Shavin Anjitha",
@@ -19,6 +19,7 @@
   "dependencies": {
     "ejs": "^3.1.10",
     "joi": "^17.13.3",
+    "lodash": "^4.17.21",
     "pug": "^3.0.3",
     "sqlite3": "^5.1.7",
     "ws": "^8.17.1"

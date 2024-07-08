@@ -1,0 +1,49 @@
+# unnessacary test folders 
+/test/css
+/test/js
+/test/*.html
+/test/*.css
+/test/*.json
+/test/*.http
+/test/test.js
+
+# node_modules
+/node_modules
+
+# build output folder
+/build
+
+# development environment files
+/.env
+/.env.local
+/.env.development.local
+/.env.test.local
+/.env.production.local
+
+# IDE and editor files
+/.vscode
+/.idea
+/.vs
+
+# logs and debugging files
+/debug.log
+/coverage
+
+# compiled output files
+/*.js
+/*.js.map
+/*.d.ts
+
+# macOS specific files
+/.DS_Store
+
+# eslint files
+/.eslintcache
+/.eslintignore
+/.eslintrc
+/.eslintrc.js
+/eslint.config.js
+
+/*.json
+.prettierrc
+/*.db

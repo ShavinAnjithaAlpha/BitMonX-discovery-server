@@ -7,6 +7,11 @@ const { handleIpHash } = require('./static/IpHash');
 const { handleLeastResponseTime } = require('./dynamic/LeastResponseTime');
 const { handleLeastResourceUsage } = require('./dynamic/LeastResourcesUsage');
 
+/*
+  This function is used to parse the request and route it to the appropriate service.
+  It first determines the appropriate service to route the request to.
+  Then, it switches the request to the appropriate load balancer.
+*/
 function requestParser(req, res) {
   // get the load balance algorithm
   const load_balance_algorithm = getLoadBalanceAlgorithm();

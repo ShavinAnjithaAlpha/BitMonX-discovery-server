@@ -29,7 +29,7 @@ async function deleteAdminHandler(req, res) {
     } catch (err) {
       // if there is an error, return a 500 error
       res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end('Error deleting the admin');
+      res.end('Error deleting the admin: ' + err.message);
       return;
     }
   });

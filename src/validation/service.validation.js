@@ -1,5 +1,11 @@
 const Joi = require('joi');
 
+/*
+ * Validate the service object
+ * @function
+ * @param {Object} service - The service object
+ * @returns {Object} - The validation result
+ */
 function validateService(service) {
   const schema = Joi.object({
     name: Joi.string().max(255).required(),

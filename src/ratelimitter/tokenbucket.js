@@ -1,3 +1,17 @@
+/*
+ * Token Bucket Algorithm
+ * The token bucket algorithm is a rate limiting algorithm that is used in network traffic management.
+ * It is used to control the rate of traffic sent or received on a network.
+ * The token bucket algorithm works by having a bucket that is filled with tokens.
+ * When a packet arrives, a token is removed from the bucket.
+ * If the bucket is empty, the packet is dropped.
+ * The bucket is refilled at a constant rate.
+ * @class TokenBucket
+ * @constructor
+ * @param {Number} capacity - The capacity of the token bucket
+ * @param {Number} fillRate - The rate at which the bucket is refilled
+ * @returns {TokenBucket} - The token bucket object
+ */
 class TokenBucket {
   // properties of the token bucket
   capacity;

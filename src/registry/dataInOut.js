@@ -1,3 +1,6 @@
+/*
+  This class is used to store the dataIn and dataOut values for a given registry.
+*/
 class DataInOut {
   // properties
   dataIn;

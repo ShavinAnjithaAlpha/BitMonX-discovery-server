@@ -69,7 +69,6 @@ async function renderUpdateAdmin(req, res) {
 
     ejs.renderFile(template, { account: data }, {}, (err, str) => {
       if (err) {
-        console.log(err);
         res.writeHead(500, { 'Content-Type': 'text/plain' });
         res.end('An error occurred');
         return;

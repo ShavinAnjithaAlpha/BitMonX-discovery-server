@@ -1,3 +1,6 @@
+/*
+  This class is used to store the instance stats
+*/
 class InstanceStat {
   // properties
   avg_response_time;

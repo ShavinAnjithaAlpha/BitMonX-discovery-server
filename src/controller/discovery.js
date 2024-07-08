@@ -86,6 +86,64 @@ function query(req, res) {
   );
 }
 
+function fetchRegistry(req, res) {
+  const filter = req.query.get('filter') || 'ALL';
+
+  const result = {};
+  // get the service registry
+  const registry = ServiceRegistry.getRegistry();
+  if (filter === 'ALL') {
+    // return the full registry to the client
+    registry.getServices().forEach((service) => {
+      const serviceJson = service.toJSON();
+      // iterate over the instance of the service object
+      const instances = [];
+      service.getInstances().forEach((instance) => {
+        instances.push(instance.toJSON());
+      });
+
+      serviceJson['instances'] = instances;
+      result[service.getName()] = serviceJson;
+    });
+
+    res.end(JSON.stringify(result));
+  } else if (filter === 'UP') {
+    // return only the UP instance in the response to the client
+    registry.getServices().forEach((service) => {
+      const serviceJson = service.toJSON();
+      // iterate over the instance of the service object
+      const instances = [];
+      service.getInstances().forEach((instance) => {
+        if (instance.getStatus() === 'UP') {
+          instances.push(instance.toJSON());
+        }
+      });
+
+      serviceJson['instances'] = instances;
+      result[service.getName()] = serviceJson;
+    });
+    res.end(JSON.stringify(result));
+  } else if (filter === 'DOWN') {
+    // retunn only the DOWN instance
+    registry.getServices().forEach((service) => {
+      const serviceJson = service.toJSON();
+      // iterate over the instance of the service object
+      const instances = [];
+      service.getInstances().forEach((instance) => {
+        if (instance.getStatus() === 'UP') {
+          instances.push(instance.toJSON());
+        }
+      });
+
+      serviceJson['instances'] = instances;
+      result[service.getName()] = serviceJson;
+    });
+    res.end(JSON.stringify(result));
+  } else {
+    throw new Error('Invalid flter query argument: ' + filter);
+  }
+}
+
 function queryHealth(req, res) {
   // get the service id and instance id from the request query
   const serviceId = parseInt(req.query.get('serviceId'));
@@ -136,4 +194,5 @@ module.exports = {
   heartbeat,
   query,
   queryHealth,
+  fetchRegistry,
 };

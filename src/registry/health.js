@@ -1,3 +1,6 @@
+/* 
+  This class is used to store the health of the registry.
+*/
 class Health {
   // properties
   cpu_usage = 0;

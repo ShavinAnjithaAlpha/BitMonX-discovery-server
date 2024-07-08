@@ -1,6 +1,7 @@
 const ServiceRegistry = require('../registry/registry');
 const { getWSS } = require('../socket');
 const WebSocket = require('ws');
+const Logger = require('../logger');
 
 function healthCheck() {
   // get the registry
@@ -11,6 +12,9 @@ function healthCheck() {
     const services = registry.getServices();
     services.forEach((service) => {
       service.getInstances().forEach((instance) => {
+        if (instance.getStatus() === 'DOWN') {
+          return;
+        }
         // check the health of the instance
         fetch(
           `http://${instance.getIpAddress()}:${instance.getPort()}${service.getHealthCheckUrl()}`,
@@ -37,7 +41,7 @@ function healthCheck() {
             });
           })
           .catch((err) => {
-            // console.log('Cannot send health data to clients');
+            Logger.logger().error('[bitmonx] Error in health check: ', err);
           });
       });
     });

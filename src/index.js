@@ -9,6 +9,7 @@ const {
   query,
   heartbeat,
   queryHealth,
+  fetchRegistry,
 } = require('./controller/discovery');
 const { dashboard, serveStaticFile } = require('./controller/dashboard');
 const errorHandler = require('./error/handler');
@@ -25,6 +26,8 @@ const { handleUpdateAdmin, renderUpdateAdmin } = require('./auth/admin_update');
 const { handleDataInOut } = require('./controller/dataInOut');
 const { sendDataInOutStat } = require('./tasks/data_in_out');
 const { deleteAdminHandler } = require('./auth/admin_delete');
+const Logger = require('./logger');
+const { getRegistry } = require('./registry/registry');
 
 // Default port for the server
 const DEFAULT_PORT = 8765;
@@ -35,6 +38,7 @@ const routes = {
   '/bitmonx/heartbeat': { POST: heartbeat },
   '/bitmonx/query/health': { GET: queryHealth },
   '/bitmonx/query': { GET: query },
+  '/bitmonx/registry': { GET: fetchRegistry },
   '/bitmonx/dashboard': { GET: dashboard },
   '/bitmonx/login': { POST: handleLogin, GET: renderLogin },
   '/bitmonx/logout': { POST: logout },
@@ -82,7 +86,7 @@ function routeMapper(req, res) {
       try {
         controller(req, res);
       } catch (exp) {
-        console.log(exp);
+        Logger.logger().error(exp);
         errorHandler(exp, req, res);
       }
     } else {
@@ -99,7 +103,9 @@ function routeMapper(req, res) {
   }
 }
 
-function discovery() {
+function discovery(logger = null) {
+  // set the logger first
+  Logger.setLogger(logger || new Logger());
   // first read theh global configurations from the config file
   const config = require('./read_config');
   // read the load balancer from the configurations
@@ -177,21 +183,19 @@ function discovery() {
   // listen on the port specified in the config file
   const port = config.server.port || DEFAULT_PORT;
   server.listen(port, () => {
-    console.log(`[SERVER] Server is listening on port ${port}`);
+    Logger.logger().debug(`[bitmonx] Server is listening on port ${port}`);
   });
 
   // initiate the health check task periodically
   setInterval(() => {
     healthCheck();
-  }, 5000);
+  }, config.health_check_interval);
 
   setInterval(() => {
     sendResponseTime();
     sendDataInOutStat();
-  }, 2000);
+  }, config.api_stat_send_interval);
 }
-
-discovery();
 
 module.exports = {
   discovery,

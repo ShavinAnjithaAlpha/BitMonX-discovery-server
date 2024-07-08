@@ -16,5 +16,7 @@
   "ratelimiting": {
     "fillRate": 10,
     "capacity": 1000
-  }
+  },
+  "health_check_interval": 5000,
+  "api_stat_send_interval": 5000
 }

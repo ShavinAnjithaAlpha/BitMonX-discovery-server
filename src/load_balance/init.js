@@ -12,6 +12,10 @@ const DEFAULT_LOAD_BALANCE_ALGORITHM = LOAD_BALANCE_ALGORITHMS.ROUND_ROBIN;
 
 let load_balance_algorithm = null;
 
+/* 
+  This function reads the load balancer algorithm from the server configurations.
+  If not found, it uses the default algorithm.
+*/
 function readLoadBalancer(config) {
   // fetch the load balance algorithm from the config file or if not found use the default algorithm
   load_balance_algorithm =

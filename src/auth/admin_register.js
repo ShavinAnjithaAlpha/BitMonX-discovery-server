@@ -93,9 +93,8 @@ function renderRegistration(req, res) {
 
     ejs.renderFile(template, {}, {}, (err, str) => {
       if (err) {
-        console.log(err);
         res.writeHead(500, { 'Content-Type': 'text/plain' });
-        res.end('An error occurred');
+        res.end('An error occurred: ' + err.message);
         return;
       }
 

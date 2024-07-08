@@ -12,10 +12,14 @@ const {
   LeastResourceUsage,
 } = require('../load_balance/dynamic/LeastResourcesUsage');
 const DataInOut = require('./dataInOut');
+const Logger = require('../logger');
 
+/*
+ * Service class
+ */
 module.exports = class Service {
   // static properties
-  static DEFAULT_HEARTBEAT_INTERVAL = 10000;
+  static DEFAULT_HEARTBEAT_INTERVAL = 30000;
   // properties
   id;
   name;
@@ -87,6 +91,19 @@ module.exports = class Service {
     return this;
   }
 
+  /*
+   * return the JSON representation of th service object
+   */
+  toJSON() {
+    return {
+      id: this.id,
+      name: this.name,
+      mapping: this.mapping,
+      version: this.version,
+      protocol: this.protocol,
+    };
+  }
+
   // getters for each properties
   getId() {
     return this.id;
@@ -155,6 +172,7 @@ module.exports = class Service {
   getDataInOut() {
     return this.dataInOut;
   }
+
   getRandomInstance() {
     // first filter the UP instances from the instances list
     const upInstances = this.instances.filter(
@@ -300,8 +318,8 @@ module.exports = class Service {
 
       // if changes occur in the instance status broadcast the changes to the clients
       if (status_ !== instance.getStatus()) {
-        console.log(
-          `[INSTANCE]: Instance ${instance.getId()} is ${instance.getStatus()}`,
+        Logger.logger().warn(
+          `[bitmonx]: Instance ${instance.getId()} is ${instance.getStatus()}`,
         );
         // broadcast the instance status to the clients
         broadcastData({
@@ -337,6 +355,12 @@ module.exports = class Service {
           this.loadbalancer_state.removeNode(instance);
         }
       }
+    }
+  }
+
+  clearIntervals() {
+    if (this.hearbeatInterval) {
+      clearInterval(this.hearbeatInterval);
     }
   }
 };

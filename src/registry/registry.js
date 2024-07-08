@@ -1,4 +1,5 @@
 const ServiceError = require('../error/ServiceError');
+const Logger = require('../logger');
 const broadcastData = require('../tasks/socket_broadcast');
 const Service = require('./service');
 
@@ -77,8 +78,8 @@ module.exports = class ServiceRegistry {
     this.number_of_services++;
     this.number_of_instances++;
 
-    console.log(
-      `Service registered: ${service.name} | SERVICE_ID: ${serviceId} | INSTANCE_ID: ${instanceId}`,
+    Logger.logger().debug(
+      `[bitmonx] Service registered: ${service.name} | SERVICE_ID: ${serviceId} | INSTANCE_ID: ${instanceId}`,
     );
 
     // broadcast the changes to the clients
@@ -131,8 +132,8 @@ module.exports = class ServiceRegistry {
     // increment the number of instances
     this.number_of_instances++;
 
-    console.log(
-      `Service instance registered: ${serviceObj.name} | SERVICE_ID: ${serviceObj.id} | INSTANCE_ID: ${instanceId}`,
+    Logger.logger().debug(
+      `[bitmonx] Service instance registered: ${serviceObj.name} | SERVICE_ID: ${serviceObj.id} | INSTANCE_ID: ${instanceId}`,
     );
 
     return { serviceId: serviceObj.getId(), instanceId };
@@ -148,13 +149,24 @@ module.exports = class ServiceRegistry {
 
     // remove the instance from the service object
     serviceObj.removeInstance(instance_id);
+    // broadcast the changes to the clients
+    const instance_data = {
+      action: 'instance_deregistered',
+      service_id,
+      instance_id,
+    };
+    broadcastData(instance_data);
     // decrement the number of instances
     this.number_of_instances--;
-    console.log(
-      `Service instance deregistered: SERVICE_ID: ${service_id} | INSTANCE_ID: ${instance_id}`,
+    Logger.logger().debug(
+      `[bitmonx] Service instance deregistered: SERVICE_ID: ${service_id} | INSTANCE_ID: ${instance_id}`,
     );
+
+    // check whether if we have to remove the Service object as well
     // get the number of instances of that service
     const instances = serviceObj.numberOfInstances();
+    // clear the intervals of the service object
+    serviceObj.clearIntervals();
     if (instances === 0) {
       // remove the service as well
       this.services = this.services.filter(
@@ -163,7 +175,16 @@ module.exports = class ServiceRegistry {
 
       // decrement the number of services
       this.number_of_services--;
-      console.log(`Service deregistered: SERVICE_ID: ${service_id}`);
+      Logger.logger().debug(
+        `[bitmonx] Service deregistered: SERVICE_ID: ${service_id}`,
+      );
+
+      // broadcast the changes to the clients
+      const service_data = {
+        action: 'service_deregistered',
+        service_id,
+      };
+      broadcastData(service_data);
     }
   }
 
@@ -189,13 +210,13 @@ module.exports = class ServiceRegistry {
   log() {
     // services names
     const services = this.services.map((service) => service.getName());
-    console.log('Services:', services);
+    Logger.logger().debug('[bitmonx] Services:', services);
 
     // instances of each services
     this.services.forEach((service) => {
-      console.log('Service:', service.getName());
+      Logger.logger().debug('[bitmonx] Service:', service.getName());
       service.instances.forEach((instance) => {
-        console.log('Instance:', instance.getId());
+        Logger.logger().debug('[bitmonx] Instance:', instance.getId());
       });
     });
   }
