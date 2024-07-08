@@ -1,12 +1,23 @@
 {
   "name": "bitmonx-discovery-server",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Discovery server library that can be used in microservices",
   "main": "src/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/ShavinAnjithaAlpha/BitMonX-discovery-server"
   },
+  "keywords": [
+    "discovery",
+    "server",
+    "microservices",
+    "bitmonx",
+    "bitmonx-discovery-server",
+    "discovery-server",
+    "service-discovery",
+    "service-discovery-server",
+    "microservices-discovery"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/index.js",
@@ -24,7 +35,6 @@
     "ejs": "^3.1.10",
     "joi": "^17.13.3",
     "lodash": "^4.17.21",
-    "pug": "^3.0.3",
     "sqlite3": "^5.1.7",
     "ws": "^8.17.1"
   }

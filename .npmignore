@@ -6,6 +6,9 @@
 /test/*.json
 /test/*.http
 /test/test.js
+/test/*png
+/test/*jpg
+/test/*jpeg
 
 # node_modules
 /node_modules
@@ -24,6 +27,7 @@
 /.vscode
 /.idea
 /.vs
+/img
 
 # logs and debugging files
 /debug.log
