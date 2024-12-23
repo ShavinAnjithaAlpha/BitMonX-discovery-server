@@ -1,0 +1,34 @@
+# Editorconfig: https://editorconfig.org
+
+# Topmost editor-config file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+
+[*]
+indent_style = space
+indent_size = 4
+
+# Override settings for JSON files
+[*.json]
+indent_size = 2                    # Use 2 spaces for JSON
+quote_type = double                # JSON standard: double quotes
+
+# Override settings for YAML files
+[*.yml, *.yaml]
+indent_size = 2                    # Use 2 spaces for YAML
+end_of_line = lf                   # Ensure LF line endings
+
+# Override settings for markdown files
+[*.md]
+max_line_length = off              # No line length limit for markdown
+trim_trailing_whitespace = false   # Allow trailing spaces for markdown formatting

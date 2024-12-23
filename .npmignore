@@ -51,3 +51,9 @@
 /*.json
 .prettierrc
 /*.db
+
+# examples 
+/examples
+
+# docs
+/docs
