@@ -136,9 +136,9 @@ If load balancing algorithm is not specified, the default algorithm will be `rou
 
 ### Dashboard
 
-<img src="img/dashboard-1.png" alt="dashboard">
+<img src="docs/img/dashboard-1.png" alt="dashboard">
 
-<img src="img/dashboard-2.png" alt="dashboard">
+<img src="docs/img/dashboard-2.png" alt="dashboard">
 
 The BDS server is equipped with an integrated secure real-time dashboard designed to monitor both the services and the server. The dashboard utilizes socket.io and chart.js for its functionality.
 
