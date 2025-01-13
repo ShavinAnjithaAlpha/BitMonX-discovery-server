@@ -25,10 +25,20 @@ module.exports = class IDGenerator {
   static HASHMAP_FLUSHED_INTERVAL = 60 * 1000; // 1 minute
   hashmap;
 
+  static idGen = null;
+
   constructor() {
     this.hashmap = new Array(this.HASHMAP_SIZE);
     // initiate flushing hashmap
     this.flushingHashMap();
+  }
+
+  static getIDGen() {
+    if (IDGenerator.idGen == null) {
+      IDGenerator.idGen = new IDGenerator();
+    }
+
+    return IDGenerator.idGen;
   }
 
   getNewInstanceID() {

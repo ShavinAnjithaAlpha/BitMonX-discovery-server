@@ -13,6 +13,7 @@ const {
 } = require('../load_balance/dynamic/LeastResourcesUsage');
 const DataInOut = require('./dataInOut');
 const Logger = require('../logger');
+const IDGenerator = require('./id_gen');
 
 /*
  * Service class
@@ -22,6 +23,7 @@ module.exports = class Service {
   static DEFAULT_HEARTBEAT_INTERVAL = 30000;
   // properties
   id;
+  globalId;
   name;
   mapping;
   health_check_url;
@@ -107,6 +109,10 @@ module.exports = class Service {
   // getters for each properties
   getId() {
     return this.id;
+  }
+
+  getGlobalId() {
+    return this.globalId;
   }
 
   getName() {
@@ -224,6 +230,9 @@ module.exports = class Service {
   }
 
   build() {
+    // assign global id for the service
+    this.globalId = IDGenerator.getIDGen().getNewServiceID();
+    // timer for heartbeat checking
     this.timeout = setTimeout(() => {
       // create heartbeat check on the service instances
       this.hearbeatInterval = setInterval(() => {

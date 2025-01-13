@@ -2,6 +2,7 @@ const HeartBeat = require('./heartbeat');
 const InstanceStat = require('./instance_stat');
 const Health = require('./health');
 const broadcastData = require('../tasks/socket_broadcast');
+const IDGenerator = require('./id_gen');
 
 /*
  * This class is used to store the instance object
@@ -12,6 +13,7 @@ module.exports = class Instance {
   // properties
   status;
   id;
+  globalId;
   service_id;
   instance_name;
   ip_address;
@@ -76,6 +78,10 @@ module.exports = class Instance {
     return this.id;
   }
 
+  getGlobalId() {
+    return this.globalId;
+  }
+
   getServiceId() {
     return this.service_id;
   }
@@ -109,6 +115,7 @@ module.exports = class Instance {
   }
 
   build() {
+    this.globalId = IDGenerator.getIDGen().getNewInstanceID();
     this.status = 'UP';
     this.stats = new InstanceStat(this);
     this.health = Health.builder().build();
