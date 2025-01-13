@@ -146,3 +146,6 @@ dist
 *.sqlite
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+
+# special files
+/test/__test.js
