@@ -1,3 +1,5 @@
+'use strict';
+
 const LEVELS = {
   error: 50,
   warn: 40,

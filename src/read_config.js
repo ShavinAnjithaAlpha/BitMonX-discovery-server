@@ -1,3 +1,5 @@
+'use strict';
+
 const fs = require('node:fs');
 const Logger = require('./logger');
 const _ = require('lodash');

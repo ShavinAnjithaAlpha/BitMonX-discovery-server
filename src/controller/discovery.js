@@ -20,7 +20,7 @@ function registerNewService(req, res) {
   }
 
   // send the service id and the instance id as response
-  res.end(
+  res.status(201).end(
     JSON.stringify({
       serviceId: result.serviceId,
       instanceId: result.instanceId,
@@ -140,7 +140,7 @@ function fetchRegistry(req, res) {
     });
     res.end(JSON.stringify(result));
   } else {
-    throw new Error('Invalid flter query argument: ' + filter);
+    throw new Error('Invalid filter query argument: ' + filter);
   }
 }
 

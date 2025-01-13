@@ -1,3 +1,5 @@
+'use strict';
+
 const http = require('node:http');
 const path = require('node:path');
 const { init } = require('./start/db');
@@ -27,7 +29,6 @@ const { handleDataInOut } = require('./controller/dataInOut');
 const { sendDataInOutStat } = require('./tasks/data_in_out');
 const { deleteAdminHandler } = require('./auth/admin_delete');
 const Logger = require('./logger');
-const { getRegistry } = require('./registry/registry');
 
 // Default port for the server
 const DEFAULT_PORT = 8765;
