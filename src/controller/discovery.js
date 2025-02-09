@@ -2,6 +2,7 @@ const { validateService } = require('../validation/service.validation');
 const ServiceError = require('../error/ServiceError');
 const ServiceRegistry = require('../registry/registry');
 const InstanceError = require('../error/InstanceError');
+const { result } = require('lodash');
 
 function registerNewService(req, res) {
   // validate the request body
@@ -20,7 +21,7 @@ function registerNewService(req, res) {
   }
 
   // send the service id and the instance id as response
-  res.status(201).end(
+  res.end(
     JSON.stringify({
       serviceId: result.serviceId,
       instanceId: result.instanceId,
@@ -30,10 +31,10 @@ function registerNewService(req, res) {
 
 function deregisterService(req, res) {
   // get the service id and instance id from the request query
-  const serviceId = parseInt(req.query.get('serviceId'));
+  const serviceId = parseInt(req.query.serviceId);
   if (!serviceId) throw new ServiceError('Service id is required', 400);
 
-  const instanceId = parseInt(req.query.get('instanceId'));
+  const instanceId = parseInt(req.query.instanceId);
   if (!instanceId) throw new ServiceError('Instance id is required', 400);
 
   // get the service registry
@@ -46,10 +47,10 @@ function deregisterService(req, res) {
 
 function heartbeat(req, res) {
   // get the service id and instance id from the request query
-  const serviceId = parseInt(req.query.get('serviceId'));
+  const serviceId = parseInt(req.query.serviceId);
   if (!serviceId) throw new ServiceError('Service id is required', 400);
 
-  const instanceId = parseInt(req.query.get('instanceId'));
+  const instanceId = parseInt(req.query.instanceId);
   if (!instanceId) throw new ServiceError('Instance id is required', 400);
 
   ServiceRegistry.getRegistry().addHeartBeat(serviceId, instanceId);
@@ -62,7 +63,7 @@ function heartbeat(req, res) {
 }
 
 function query(req, res) {
-  const mapping = req.query.get('mapping');
+  const mapping = req.query.mapping;
   if (!mapping) throw new ServiceError('Mapping is required', 400);
 
   // get the registry
@@ -87,7 +88,7 @@ function query(req, res) {
 }
 
 function fetchRegistry(req, res) {
-  const filter = req.query.get('filter') || 'ALL';
+  const filter = req.query.filter || 'ALL';
 
   const result = {};
   // get the service registry
@@ -146,10 +147,10 @@ function fetchRegistry(req, res) {
 
 function queryHealth(req, res) {
   // get the service id and instance id from the request query
-  const serviceId = parseInt(req.query.get('serviceId'));
+  const serviceId = parseInt(req.query.serviceId);
   if (!serviceId) throw new ServiceError('Service id is required', 400);
 
-  const instanceId = parseInt(req.query.get('instanceId'));
+  const instanceId = parseInt(req.query.instanceId);
   if (!instanceId) throw new ServiceError('Instance id is required', 400);
 
   // make sure the service and instance exist
@@ -188,6 +189,66 @@ function queryHealth(req, res) {
     });
 }
 
+// last N endpoints
+function getLastNRegisteredServices(req, res) {
+  // get the N from the path variable in the request url
+  try {
+    const N = parseInt(req.query.N);
+
+    const registry = ServiceRegistry.getRegistry();
+    const lastNRegisteredServices = registry
+      .getLastNRegisteredServices()
+      .getLastN(N);
+    const results = [];
+    lastNRegisteredServices.forEach((service) => {
+      if (service != null) {
+        results.push(service.toJSON(1));
+      }
+    });
+
+    const response = {
+      timestamp: new Date().toISOString(),
+      requested: N,
+      returned: results.length,
+      values: results,
+    };
+
+    return res.end(JSON.stringify(response));
+  } catch (err) {
+    throw new Error(`Invalid N value: ${err}`);
+  }
+}
+
+function getLastNRegisteredInstances(req, res) {
+  // get the N from the path variable in the request url
+  try {
+    const N = parseInt(req.query.N);
+
+    const registry = ServiceRegistry.getRegistry();
+    const lastNRegisteredInstances = registry
+      .getLastNRegisteredInstances()
+      .getLastN(N);
+
+    const results = [];
+    lastNRegisteredInstances.forEach((instance) => {
+      if (instance != null) {
+        results.push(instance.toJSON());
+      }
+    });
+
+    const response = {
+      timestamp: new Date().toISOString(),
+      requested: N,
+      returned: results.length,
+      values: results,
+    };
+
+    res.end(JSON.stringify(response));
+  } catch (err) {
+    throw new Error(`Invalid N value: ${err}`);
+  }
+}
+
 module.exports = {
   registerNewService,
   deregisterService,
@@ -195,4 +256,6 @@ module.exports = {
   query,
   queryHealth,
   fetchRegistry,
+  getLastNRegisteredServices,
+  getLastNRegisteredInstances,
 };
