@@ -3,6 +3,7 @@
 const http = require('node:http');
 const https = require('node:https');
 const fs = require('node:fs');
+const url = require('url');
 const path = require('node:path');
 const { init } = require('./start/db');
 const { readLoadBalancer } = require('./load_balance/init');
@@ -33,7 +34,7 @@ const { handleDataInOut } = require('./controller/dataInOut');
 const { sendDataInOutStat } = require('./tasks/data_in_out');
 const { deleteAdminHandler } = require('./auth/admin_delete');
 const Logger = require('./logger');
-const { url } = require('node:inspector');
+const RouteMap = require('./route_map');
 
 class DiscoveryServer {
   // Default port for the server
@@ -41,35 +42,12 @@ class DiscoveryServer {
   // logger instance for DiscoveryServer class
   static logger = Logger.logger('DiscoveryServer');
 
-  static routes = {
-    '/bitmonx/register': { POST: registerNewService },
-    '/bitmonx/deregister': { DELETE: deregisterService },
-    '/bitmonx/heartbeat': { POST: heartbeat },
-    '/bitmonx/query/health': { GET: queryHealth },
-    '/bitmonx/query': { GET: query },
-    '/bitmonx/services/last': { GET: getLastNRegisteredServices },
-    '/bitmonx/instances/last': { GET: getLastNRegisteredInstances },
-    '/bitmonx/registry': { GET: fetchRegistry },
-    '/bitmonx/dashboard': { GET: dashboard },
-    '/bitmonx/login': { POST: handleLogin, GET: renderLogin },
-    '/bitmonx/logout': { POST: logout },
-    '/bitmonx/admin/register': {
-      GET: renderRegistration,
-      POST: handleRegistration,
-      PUT: handleUpdateAdmin,
-    },
-    '/bitmonx/admin': {
-      GET: renderUpdateAdmin,
-      PUT: handleUpdateAdmin,
-      DELETE: deleteAdminHandler,
-    },
-  };
-
   constructor() {
     this.config = require('./read_config');
     this.server = null;
     this._isRateLimiting = false;
     this._tokenBucket = null;
+    this.routeMap = new RouteMap();
 
     // setup the ratelimitter
     this.setUpRateLimitter();
@@ -78,13 +56,42 @@ class DiscoveryServer {
   }
 
   /**
-   * entry point of the BitMonX discovery server backed by node http server
+   * Sets up the rate limiter for the discovery server.
+   * If rate limiting is enabled in the configuration, it creates a token bucket
+   * and enables rate limiting.
    *
+   * @returns {void}
+   */
+  setUpRateLimitter() {
+    // create a token bucket if rate limiting enabled
+    if (this.config.ratelimiting) {
+      DiscoveryServer.logger.info('ratelimiting setup successfully');
+
+      this._tokenBucket = TokenBucket.build();
+      this._isRateLimiting = true;
+    }
+  }
+
+  /**
+   * Starts the Discovery Server.
    *
+   * This method serves as the entry point to the server. It performs the following tasks:
+   * 1. Initializes the database.
+   * 2. Creates and starts an HTTP or HTTPS server based on the configuration provided.
+   * 3. Logs the initiation of the WebSocket server.
+   * 4. Starts the WebSocket Server.
+   * 5. Listens on the port specified in the configuration file or a default port.
+   * 6. Logs that the server is listening on the specified port.
+   * 7. Starts scheduled tasks.
+   *
+   * @throws {Error} Throws an error if the server fails to start.
    */
   start() {
     // initialize the database
     init();
+    // register routes with the server
+    DiscoveryServer.logger.info('all the routes mapped successfully');
+    this.registerRoutes();
     // create a http/https server on specified port based on the configuration provided
     if (this.config.server.protocol === 'https') {
       this.startHttpsServer();
@@ -111,11 +118,28 @@ class DiscoveryServer {
     this.initSchedulesTasks();
   }
 
+  /**
+   * Initializes and starts the HTTP server.
+   * Logs the initialization process and creates an HTTP server instance
+   * using the provided server handler.
+   */
   startHttpServer() {
     DiscoveryServer.logger.info('initializing http server');
     this.server = http.createServer(this.serverHandler);
   }
 
+  /**
+   * Starts an HTTPS server using the provided key and certificate files from the configuration.
+   *
+   * This method performs the following steps:
+   * 1. Retrieves the key and certificate file paths from the configuration.
+   * 2. Checks if the key and certificate files exist.
+   * 3. If either file is missing, logs an error message and exits the process.
+   * 4. Reads the key and certificate files.
+   * 5. Initializes and starts the HTTPS server with the provided key and certificate.
+   *
+   * @throws Will terminate the process if the key or certificate file is not found.
+   */
   startHttpsServer() {
     // get the key and certificate file paths from the configs
     const key = path.join(__dirname, this.config.server.https.key);
@@ -139,7 +163,45 @@ class DiscoveryServer {
     this.server = https.createServer(options, this.serverHandler);
   }
 
-  serverHandler(req, res) {
+  registerRoutes() {
+    this.routeMap.add('/register').addPOST(registerNewService);
+    this.routeMap.add('/deregister').addDELETE(deregisterService);
+    this.routeMap.add('/heartbeat').addPOST(heartbeat);
+    this.routeMap.add('/query/health').addGET(queryHealth);
+    this.routeMap
+      .add('/services/last/:N', true)
+      .addGET(getLastNRegisteredServices, this.getPathParser());
+    this.routeMap
+      .add('/instances/last/:N', true)
+      .addGET(getLastNRegisteredInstances, this.getPathParser());
+    this.routeMap.add('/registry').addGET(fetchRegistry);
+    this.routeMap.add('/dashboard').addGET(dashboard);
+    this.routeMap.add('/login').addPOST(handleLogin).addGET(renderLogin);
+    this.routeMap.add('/logout').addPOST(logout);
+    this.routeMap
+      .add('/admin/register')
+      .addGET(renderRegistration)
+      .addPOST(handleRegistration)
+      .addPUT(handleUpdateAdmin);
+    this.routeMap
+      .add('/admin')
+      .addGET(renderUpdateAdmin)
+      .addPUT(handleUpdateAdmin)
+      .addDELETE(deleteAdminHandler);
+  }
+
+  /**
+   * Handles incoming HTTP requests by parsing the request body, setting up the response body size calculation,
+   * and calling the middleware handler to process the request.
+   * If rate limiting is enabled, the method checks the token bucket before processing the request.
+   * If the token bucket is empty, the method returns a 429 status code.
+   * @param {http.IncomingMessage} req - The incoming HTTP request object.
+   * @param {http.ServerResponse} res - The server response object.
+   * @returns {void}
+   * @memberof DiscoveryServer
+   *
+   **/
+  serverHandler = (req, res) => {
     // if ratelimiting is enabled then check the token bucket
     if (this._isRateLimiting) {
       // if the token bucket is empty then return 429
@@ -194,64 +256,147 @@ class DiscoveryServer {
         );
         req.body = data; // attach the collected data to the request object
       }
-      this.parseQueryParameters(req, res, this.mapRoutes(req, res)); // parse the request to the router
+      this.getMiddlewareHandler()(
+        req,
+        res,
+        [this.getQueryParser()],
+        this.getRouteMapper(),
+      ); // parse the request to the router
     });
-  }
+  };
 
-  parseQueryParameters(req, res, next) {
-    const parsedUrl = url.parse(req.url, true);
-    req.query = parsedUrl.query; // attach parsed query parameters to the request object
+  /**
+   * Returns a middleware handler function that executes an array of middleware functions in sequence.
+   *
+   * @returns {Function} Middleware handler function.
+   * @param {Object} req - The request object.
+   * @param {Object} res - The response object.
+   * @param {Array<Function>} middlewares - An array of middleware functions to be executed.
+   * @param {Function} finalHandler - The final handler function to be executed after all middlewares.
+   */
+  getMiddlewareHandler() {
+    return (req, res, middlewares, finalHandler) => {
+      let index = 0;
 
-    next(); // call the next middleware in the request hadler chain
-  }
-
-  parsePathVariables(req, res, pattern, next) {
-    const parsedUrl = url.parse(req.url, true);
-    const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
-    const patternSegments = pattern.split('/').filter(Boolean);
-
-    let params = {};
-    if (pathSegments.length === patternSegments.length) {
-      patternSegments.forEach((segment, index) => {
-        if (segment.startsWith(':')) {
-          params[segment.substring(1)] = pathSegments[index];
+      function next() {
+        if (index < middlewares.length) {
+          middlewares[index++](req, res, next);
+        } else {
+          finalHandler(req, res);
         }
-      });
-    }
+      }
 
-    req.params = params; // attach the params object to req object
-    next(); // call the next handler in the request handler chain
+      next(); // executing the middleware functions
+    };
   }
 
-  mapRoutes(req, res) {
-    // extract the request mapping
-    const route = req.url.split('?')[0];
+  /**
+   * Middleware function to parse query parameters from the request URL.
+   *
+   * @returns {Function} Middleware function that parses query parameters and attaches them to the request object.
+   *
+   * @example
+   * const express = require('express');
+   * const app = express();
+   * const getQueryParser = require('./path/to/this/file').getQueryParser;
+   *
+   * app.use(getQueryParser());
+   *
+   * app.get('/', (req, res) => {
+   *   res.send(req.query); // Access parsed query parameters
+   * });
+   *
+   * app.listen(3000, () => {
+   *   console.log('Server is running on port 3000');
+   * });
+   */
+  getQueryParser() {
+    return (req, res, next) => {
+      const parsedUrl = url.parse(req.url, true);
+      req.query = parsedUrl.query; // attach parsed query parameters to the request object
 
-    // now map the routes to the controller
-    if (DiscoveryServer.routes[route]) {
-      const router = DiscoveryServer.routes[route];
-      if (router[req.method]) {
-        const controller = router[req.method];
-        try {
-          controller(req, res);
-        } catch (exp) {
-          DiscoveryServer.logger.error(exp);
-          errorHandler(exp, req, res);
+      next(); // call the next middleware in the request handler chain
+    };
+  }
+
+  /**
+   * Parses path variables from the request URL based on the given pattern and attaches them to the request object.
+   *
+   * @param {Object} req - The HTTP request object.
+   * @param {Object} res - The HTTP response object.
+   * @param {string} pattern - The URL pattern to match against the request URL.
+   * @param {Function} next - The next middleware function in the request handler chain.
+   */
+  getPathParser() {
+    return (req, res, pattern, next) => {
+      const parsedUrl = url.parse(req.url, true);
+
+      const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
+      const patternSegments = pattern.split('/').filter(Boolean);
+
+      let params = {};
+      if (pathSegments.length === patternSegments.length) {
+        patternSegments.forEach((segment, index) => {
+          if (segment.startsWith(':')) {
+            params[segment.substring(1)] = pathSegments[index];
+          }
+        });
+      }
+
+      req.params = params; // attach the params object to req object
+      next(req, res); // call the next handler in the request handler chain
+    };
+  }
+
+  /**
+   * Returns a function that maps incoming requests to the appropriate controller based on the route and HTTP method.
+   * If the route is not found, it attempts to serve static files or passes the request to the load balancer.
+   *
+   * @returns {Function} A function that handles incoming requests.
+   */
+  getRouteMapper() {
+    return (req, res) => {
+      // extract the request mapping
+      const route = req.url.split('?')[0];
+
+      // now map the routes to the controller
+      if (this.routeMap.get(route)) {
+        const router = this.routeMap.get(route);
+        // called the specific route handler based on HTTP method requested
+        if (router.get(req.method)) {
+          const controller = router.get(req.method);
+          try {
+            controller(req, res);
+          } catch (exp) {
+            DiscoveryServer.logger.error(exp);
+            errorHandler(exp, req, res);
+          }
+        } else {
+          res.statusCode = 405;
+          res.end('Method not allowed');
         }
       } else {
-        res.statusCode = 405;
-        res.end('Method not allowed');
+        // server static files // CSS and JS
+        const status = this.serveStaticFiles(req, res);
+        if (!status) {
+          // parse the request to the load balancer for routing
+          requestParser(req, res);
+        }
       }
-    } else {
-      // server static files // CSS and JS
-      const status = this.serveStaticFiles(req, res);
-      if (!status) {
-        // parse the request to the load balancer for routing
-        requestParser(req, res);
-      }
-    }
+    };
   }
 
+  /**
+   * Serves static files based on the request URL.
+   *
+   * This method checks the request URL to determine the type of static file being requested
+   * (CSS, JavaScript, or PNG image) and serves the appropriate file with the correct MIME type.
+   *
+   * @param {Object} req - The HTTP request object.
+   * @param {string} req.url - The URL of the request.
+   * @param {Object} res - The HTTP response object.
+   * @returns {boolean} - Returns true if a static file was served, otherwise false.
+   */
   serveStaticFiles(req, res) {
     if (req.url.match(/.css$/)) {
       const cssPath = path.join(__dirname, 'public', req.url);
@@ -270,16 +415,12 @@ class DiscoveryServer {
     return false;
   }
 
-  setUpRateLimitter() {
-    // create a token bucket if rate limiting enabled
-    if (this.config.ratelimiting) {
-      DiscoveryServer.logger.info('ratelimiting setup successfully');
-
-      this._tokenBucket = TokenBucket.build();
-      this._isRateLimiting = true;
-    }
-  }
-
+  /**
+   * Initializes scheduled tasks on the server.
+   *
+   * This method logs the start of scheduled tasks and initializes
+   * the health check and metric streaming tasks.
+   */
   initSchedulesTasks() {
     DiscoveryServer.logger.info('starting scheduled tasks on the server');
 
@@ -287,6 +428,11 @@ class DiscoveryServer {
     this.initMetricStreamingTask();
   }
 
+  /**
+   * Initializes a scheduled health check task that runs at a specified interval.
+   * The interval duration is defined in the configuration.
+   * Logs a message indicating the start of the health check task.
+   */
   initHealthCheckTask() {
     setInterval(() => {
       healthCheck();
@@ -297,6 +443,12 @@ class DiscoveryServer {
     );
   }
 
+  /**
+   * Initializes a scheduled task to stream metrics at a specified interval.
+   * The task sends response time and data in/out statistics.
+   * The interval is defined by the `api_stat_send_interval` configuration property.
+   * Logs the start of the scheduled task with the configured interval.
+   */
   initMetricStreamingTask() {
     setInterval(() => {
       sendResponseTime();
