@@ -1,16 +1,63 @@
 const ServiceError = require('../error/ServiceError');
 const Logger = require('../logger');
 const broadcastData = require('../tasks/socket_broadcast');
+const CircularQueue = require('./circular_queue');
 const Service = require('./service');
+const config = require('../read_config');
+const ValueHolder = require('./value_holder');
 
 module.exports = class ServiceRegistry {
+  static logger = Logger.logger(ServiceRegistry.name);
+
   // properties
   services = [];
   number_of_services = 0;
   number_of_instances = 0;
   static registry = null;
 
-  constructor() {}
+  // queues for maintaining last N entries of different fields
+  // default size for those queue is 1K
+  // is specified in the configs, then it will be used as the queue size
+  // there are 4 queues for 4 different fields
+  // 1. last N registered services
+  // 2. last N registered instances
+  // 3. last N cancelled instances
+  // 4. last deregistered instances
+  // 5. last N updated instances
+  lastNRegisteredServices = null;
+  lastNRedisteredInstances = null;
+  lastNCancelledInstances = null;
+  lastNDeregisteredInstances = null;
+  lastNUpdatedInstances = null;
+
+  constructor() {
+    let queue_size = config?.queue?.size || 1000;
+    this.lastNRegisteredServices = new CircularQueue(queue_size);
+    this.lastNRegisteredInstances = new CircularQueue(queue_size);
+    this.lastNCancelledInstances = new CircularQueue(queue_size);
+    this.lastNDeregisteredInstances = new CircularQueue(queue_size);
+    this.lastNUpdatedInstances = new CircularQueue(queue_size);
+  }
+
+  getLastNRegisteredServices() {
+    return this.lastNRegisteredServices;
+  }
+
+  getLastNRegisteredInstances() {
+    return this.lastNRegisteredInstances;
+  }
+
+  getLastNCancelledInstances() {
+    return this.lastNCancelledInstances;
+  }
+
+  getLastNDeregisteredInstances() {
+    return this.lastNDeregisteredInstances;
+  }
+
+  getLastNUpdatedInstances() {
+    return this.lastNUpdatedInstances;
+  }
 
   static getRegistry() {
     if (this.registry == null) {
@@ -74,12 +121,19 @@ module.exports = class ServiceRegistry {
     );
     const serviceId = serviceObj.getId();
 
+    // add to the last N registered services queue
+    this.lastNRegisteredServices.push(new ValueHolder(serviceObj));
+    // add to the last N registered instance queue
+    this.lastNRegisteredInstances.push(
+      new ValueHolder(serviceObj.getInstance(instanceId)),
+    );
+
     // increment the number of services and instances
     this.number_of_services++;
     this.number_of_instances++;
 
-    Logger.logger().debug(
-      `[bitmonx] Service registered: ${service.name} | SERVICE_ID: ${serviceId} | INSTANCE_ID: ${instanceId}`,
+    ServiceRegistry.logger.debug(
+      `service registered: ${service.name} | SERVICE_ID: ${serviceId} | INSTANCE_ID: ${instanceId}`,
     );
 
     // broadcast the changes to the clients
@@ -132,8 +186,13 @@ module.exports = class ServiceRegistry {
     // increment the number of instances
     this.number_of_instances++;
 
-    Logger.logger().debug(
-      `[bitmonx] Service instance registered: ${serviceObj.name} | SERVICE_ID: ${serviceObj.id} | INSTANCE_ID: ${instanceId}`,
+    // add to the last N registered instances queue
+    this.lastNRegisteredInstances.push(
+      new ValueHolder(serviceObj.getInstance(instanceId)),
+    );
+
+    ServiceRegistry.logger.info(
+      `service instance registered: ${serviceObj.name} | SERVICE_ID: ${serviceObj.id} | INSTANCE_ID: ${instanceId}`,
     );
 
     return { serviceId: serviceObj.getId(), instanceId };
@@ -149,6 +208,15 @@ module.exports = class ServiceRegistry {
 
     // remove the instance from the service object
     serviceObj.removeInstance(instance_id);
+
+    // add to the last N deregistered instances queue
+    this.lastNDeregisteredInstances.push(
+      new ValueHolder({
+        service: serviceObj,
+        instanceId: instance_id,
+      }),
+    );
+
     // broadcast the changes to the clients
     const instance_data = {
       action: 'instance_deregistered',
@@ -158,8 +226,8 @@ module.exports = class ServiceRegistry {
     broadcastData(instance_data);
     // decrement the number of instances
     this.number_of_instances--;
-    Logger.logger().debug(
-      `[bitmonx] Service instance deregistered: SERVICE_ID: ${service_id} | INSTANCE_ID: ${instance_id}`,
+    ServiceRegistry.logger.info(
+      `service instance deregistered: SERVICE_ID: ${service_id} | INSTANCE_ID: ${instance_id}`,
     );
 
     // check whether if we have to remove the Service object as well
@@ -175,8 +243,8 @@ module.exports = class ServiceRegistry {
 
       // decrement the number of services
       this.number_of_services--;
-      Logger.logger().debug(
-        `[bitmonx] Service deregistered: SERVICE_ID: ${service_id}`,
+      ServiceRegistry.logger.debug(
+        `service deregistered: SERVICE_ID: ${service_id}`,
       );
 
       // broadcast the changes to the clients
@@ -207,16 +275,24 @@ module.exports = class ServiceRegistry {
     serviceObj.addHeartBeat(instance_id);
   }
 
+  cancelledInstance(service_id, instance_id) {
+    const serviceObj = this.getServiceById(service_id);
+    // get the instance object from the service object
+    const instance = serviceObj.getInstance(instance_id);
+    // add to the last N cancelled instances queue
+    this.lastNCancelledInstances.push(new ValueHolder(instance));
+  }
+
   log() {
     // services names
     const services = this.services.map((service) => service.getName());
-    Logger.logger().debug('[bitmonx] Services:', services);
+    ServiceRegistry.logger.debug('services:', services);
 
     // instances of each services
     this.services.forEach((service) => {
-      Logger.logger().debug('[bitmonx] Service:', service.getName());
+      ServiceRegistry.logger.debug('service:', service.getName());
       service.instances.forEach((instance) => {
-        Logger.logger().debug('[bitmonx] Instance:', instance.getId());
+        ServiceRegistry.logger.debug('instance:', instance.getId());
       });
     });
   }
