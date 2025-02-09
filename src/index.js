@@ -1,6 +1,8 @@
 'use strict';
 
 const http = require('node:http');
+const https = require('node:https');
+const fs = require('node:fs');
 const path = require('node:path');
 const { init } = require('./start/db');
 const { readLoadBalancer } = require('./load_balance/init');
@@ -12,6 +14,8 @@ const {
   heartbeat,
   queryHealth,
   fetchRegistry,
+  getLastNRegisteredServices,
+  getLastNRegisteredInstances,
 } = require('./controller/discovery');
 const { dashboard, serveStaticFile } = require('./controller/dashboard');
 const errorHandler = require('./error/handler');
@@ -29,104 +33,117 @@ const { handleDataInOut } = require('./controller/dataInOut');
 const { sendDataInOutStat } = require('./tasks/data_in_out');
 const { deleteAdminHandler } = require('./auth/admin_delete');
 const Logger = require('./logger');
+const { url } = require('node:inspector');
 
-// Default port for the server
-const DEFAULT_PORT = 8765;
+class DiscoveryServer {
+  // Default port for the server
+  static DEFAULT_PORT = 8765;
+  // logger instance for DiscoveryServer class
+  static logger = Logger.logger('DiscoveryServer');
 
-const routes = {
-  '/bitmonx/register': { POST: registerNewService },
-  '/bitmonx/deregister': { DELETE: deregisterService },
-  '/bitmonx/heartbeat': { POST: heartbeat },
-  '/bitmonx/query/health': { GET: queryHealth },
-  '/bitmonx/query': { GET: query },
-  '/bitmonx/registry': { GET: fetchRegistry },
-  '/bitmonx/dashboard': { GET: dashboard },
-  '/bitmonx/login': { POST: handleLogin, GET: renderLogin },
-  '/bitmonx/logout': { POST: logout },
-  '/bitmonx/admin/register': {
-    GET: renderRegistration,
-    POST: handleRegistration,
-    PUT: handleUpdateAdmin,
-  },
-  '/bitmonx/admin': {
-    GET: renderUpdateAdmin,
-    PUT: handleUpdateAdmin,
-    DELETE: deleteAdminHandler,
-  },
-};
+  static routes = {
+    '/bitmonx/register': { POST: registerNewService },
+    '/bitmonx/deregister': { DELETE: deregisterService },
+    '/bitmonx/heartbeat': { POST: heartbeat },
+    '/bitmonx/query/health': { GET: queryHealth },
+    '/bitmonx/query': { GET: query },
+    '/bitmonx/services/last': { GET: getLastNRegisteredServices },
+    '/bitmonx/instances/last': { GET: getLastNRegisteredInstances },
+    '/bitmonx/registry': { GET: fetchRegistry },
+    '/bitmonx/dashboard': { GET: dashboard },
+    '/bitmonx/login': { POST: handleLogin, GET: renderLogin },
+    '/bitmonx/logout': { POST: logout },
+    '/bitmonx/admin/register': {
+      GET: renderRegistration,
+      POST: handleRegistration,
+      PUT: handleUpdateAdmin,
+    },
+    '/bitmonx/admin': {
+      GET: renderUpdateAdmin,
+      PUT: handleUpdateAdmin,
+      DELETE: deleteAdminHandler,
+    },
+  };
 
-function serveStaticFiles(req, res) {
-  if (req.url.match(/.css$/)) {
-    const cssPath = path.join(__dirname, 'public', req.url);
-    serveStaticFile(cssPath, 'text/css', res);
-    return true;
-  } else if (req.url.match(/.js$/)) {
-    const jsPath = path.join(__dirname, 'public', req.url);
-    serveStaticFile(jsPath, 'text/javascript', res);
-    return true;
-  } else if (req.url.match(/.png$/)) {
-    const imgPath = path.join(__dirname, 'public', req.url);
-    serveStaticFile(imgPath, 'image/png', res);
-    return true;
+  constructor() {
+    this.config = require('./read_config');
+    this.server = null;
+    this._isRateLimiting = false;
+    this._tokenBucket = null;
+
+    // setup the ratelimitter
+    this.setUpRateLimitter();
+    // read the load balancer from the configurations
+    readLoadBalancer(this.config);
   }
 
-  return false;
-}
-
-function routeMapper(req, res) {
-  // parse the query parameter
-  req.query = new URL(req.url, `https://${req.headers.host}`).searchParams;
-  // extract the request mapping
-  const route = req.url.split('?')[0];
-
-  // now map the routes to the controller
-  if (routes[route]) {
-    const router = routes[route];
-    if (router[req.method]) {
-      const controller = router[req.method];
-      try {
-        controller(req, res);
-      } catch (exp) {
-        Logger.logger().error(exp);
-        errorHandler(exp, req, res);
-      }
+  /**
+   * entry point of the BitMonX discovery server backed by node http server
+   *
+   *
+   */
+  start() {
+    // initialize the database
+    init();
+    // create a http/https server on specified port based on the configuration provided
+    if (this.config.server.protocol === 'https') {
+      this.startHttpsServer();
     } else {
-      res.statusCode = 405;
-      res.end('Method not allowed');
+      this.startHttpServer();
     }
-  } else {
-    // server static files // CSS and JS
-    const status = serveStaticFiles(req, res);
-    if (!status) {
-      // parse the request to the load balancer for routing
-      requestParser(req, res);
+
+    DiscoveryServer.logger.info(
+      'starting websocket server socket on the discovery server',
+    );
+    // start the WebSocket Server
+    initWSS(this.server);
+
+    // listen on the port specified in the config file
+    const port = this.config.server.port || DiscoveryServer.DEFAULT_PORT;
+
+    this.server.listen(port, () => {
+      DiscoveryServer.logger.info(
+        `discovery server is listening on port ${port}`,
+      );
+    });
+
+    // start schedules tasks
+    this.initSchedulesTasks();
+  }
+
+  startHttpServer() {
+    DiscoveryServer.logger.info('initializing http server');
+    this.server = http.createServer(this.serverHandler);
+  }
+
+  startHttpsServer() {
+    // get the key and certificate file paths from the configs
+    const key = path.join(__dirname, this.config.server.https.key);
+    const cert = path.join(__dirname, this.config.server.https.cert);
+
+    // check if the key and certificate files are present
+    if (!fs.existsSync(key) || !fs.existsSync(cert)) {
+      DiscoveryServer.logger.error(
+        'key or certificate file is not found, exit from the server',
+      );
+      process.exit(1);
     }
-  }
-}
 
-function discovery(logger = null) {
-  // set the logger first
-  Logger.setLogger(logger || new Logger());
-  // first read theh global configurations from the config file
-  const config = require('./read_config');
-  // read the load balancer from the configurations
-  readLoadBalancer(config);
-  // initialize the database
-  init();
-
-  // create a token bucket if rate limiting enabled
-  let tokenBucket = null;
-  let ratelimiting = false;
-  if (config.ratelimiting) {
-    tokenBucket = TokenBucket.build();
-    ratelimiting = true;
+    const options = {
+      key: fs.readFileSync(key),
+      cert: fs.readFileSync(cert),
+    };
+    DiscoveryServer.logger.info('reading key and certificate files');
+    // start the server with key and certificate
+    DiscoveryServer.logger.info('initializing https server');
+    this.server = https.createServer(options, this.serverHandler);
   }
-  // create a http server on specified port
-  const server = http.createServer((req, res) => {
+
+  serverHandler(req, res) {
     // if ratelimiting is enabled then check the token bucket
-    if (ratelimiting) {
+    if (this._isRateLimiting) {
       // if the token bucket is empty then return 429
-      if (!tokenBucket.consume(1)) {
+      if (!this._tokenBucket.consume(1)) {
         res.statusCode = 429;
         res.end('Too many requests');
         return;
@@ -172,32 +189,124 @@ function discovery(logger = null) {
       try {
         req.body = JSON.parse(data); // attach the collected data to the request object
       } catch (err) {
+        DiscoveryServer.logger.debug(
+          `can't parse request body in json format: ${err}`,
+        );
         req.body = data; // attach the collected data to the request object
       }
-      routeMapper(req, res); // parse the request to the router
+      this.parseQueryParameters(req, res, this.mapRoutes(req, res)); // parse the request to the router
     });
-  });
+  }
 
-  // start the WebSocket Server
-  initWSS(server);
+  parseQueryParameters(req, res, next) {
+    const parsedUrl = url.parse(req.url, true);
+    req.query = parsedUrl.query; // attach parsed query parameters to the request object
 
-  // listen on the port specified in the config file
-  const port = config.server.port || DEFAULT_PORT;
-  server.listen(port, () => {
-    Logger.logger().debug(`[bitmonx] Server is listening on port ${port}`);
-  });
+    next(); // call the next middleware in the request hadler chain
+  }
 
-  // initiate the health check task periodically
-  setInterval(() => {
-    healthCheck();
-  }, config.health_check_interval);
+  parsePathVariables(req, res, pattern, next) {
+    const parsedUrl = url.parse(req.url, true);
+    const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
+    const patternSegments = pattern.split('/').filter(Boolean);
 
-  setInterval(() => {
-    sendResponseTime();
-    sendDataInOutStat();
-  }, config.api_stat_send_interval);
+    let params = {};
+    if (pathSegments.length === patternSegments.length) {
+      patternSegments.forEach((segment, index) => {
+        if (segment.startsWith(':')) {
+          params[segment.substring(1)] = pathSegments[index];
+        }
+      });
+    }
+
+    req.params = params; // attach the params object to req object
+    next(); // call the next handler in the request handler chain
+  }
+
+  mapRoutes(req, res) {
+    // extract the request mapping
+    const route = req.url.split('?')[0];
+
+    // now map the routes to the controller
+    if (DiscoveryServer.routes[route]) {
+      const router = DiscoveryServer.routes[route];
+      if (router[req.method]) {
+        const controller = router[req.method];
+        try {
+          controller(req, res);
+        } catch (exp) {
+          DiscoveryServer.logger.error(exp);
+          errorHandler(exp, req, res);
+        }
+      } else {
+        res.statusCode = 405;
+        res.end('Method not allowed');
+      }
+    } else {
+      // server static files // CSS and JS
+      const status = this.serveStaticFiles(req, res);
+      if (!status) {
+        // parse the request to the load balancer for routing
+        requestParser(req, res);
+      }
+    }
+  }
+
+  serveStaticFiles(req, res) {
+    if (req.url.match(/.css$/)) {
+      const cssPath = path.join(__dirname, 'public', req.url);
+      serveStaticFile(cssPath, 'text/css', res);
+      return true;
+    } else if (req.url.match(/.js$/)) {
+      const jsPath = path.join(__dirname, 'public', req.url);
+      serveStaticFile(jsPath, 'text/javascript', res);
+      return true;
+    } else if (req.url.match(/.png$/)) {
+      const imgPath = path.join(__dirname, 'public', req.url);
+      serveStaticFile(imgPath, 'image/png', res);
+      return true;
+    }
+
+    return false;
+  }
+
+  setUpRateLimitter() {
+    // create a token bucket if rate limiting enabled
+    if (this.config.ratelimiting) {
+      DiscoveryServer.logger.info('ratelimiting setup successfully');
+
+      this._tokenBucket = TokenBucket.build();
+      this._isRateLimiting = true;
+    }
+  }
+
+  initSchedulesTasks() {
+    DiscoveryServer.logger.info('starting scheduled tasks on the server');
+
+    this.initHealthCheckTask();
+    this.initMetricStreamingTask();
+  }
+
+  initHealthCheckTask() {
+    setInterval(() => {
+      healthCheck();
+    }, this.config.health_check_interval);
+
+    DiscoveryServer.logger.info(
+      `started scheduled health check task with period ${this.config.health_check_interval} ms`,
+    );
+  }
+
+  initMetricStreamingTask() {
+    setInterval(() => {
+      sendResponseTime();
+      sendDataInOutStat();
+    }, this.config.api_stat_send_interval);
+
+    DiscoveryServer.logger.info(
+      `started scheduled metric streaming task with period ${this.config.api_stat_send_interval} ms`,
+    );
+  }
 }
 
-module.exports = {
-  discovery,
-};
+module.exports = DiscoveryServer;
