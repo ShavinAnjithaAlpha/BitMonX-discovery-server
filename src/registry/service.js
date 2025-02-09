@@ -14,11 +14,14 @@ const {
 const DataInOut = require('./dataInOut');
 const Logger = require('../logger');
 const IDGenerator = require('./id_gen');
+const ServiceRegistry = require('./registry');
 
 /*
  * Service class
  */
 module.exports = class Service {
+  static logger = Logger.logger(Service.name);
+
   // static properties
   static DEFAULT_HEARTBEAT_INTERVAL = 30000;
   // properties
@@ -94,16 +97,50 @@ module.exports = class Service {
   }
 
   /*
-   * return the JSON representation of th service object
+   * return the JSON representation of th service object based on the verbosity level provides
+   * verbosity level 0: returns the basic information of the service
+   * verbosity level 1: returns the basic information of the service with health check and timeout information
    */
-  toJSON() {
-    return {
-      id: this.id,
-      name: this.name,
-      mapping: this.mapping,
-      version: this.version,
-      protocol: this.protocol,
-    };
+  toJSON(verbosity_level = 0) {
+    switch (verbosity_level) {
+      case 0:
+        return {
+          id: this.id,
+          globalId: this.globalId,
+          name: this.name,
+          mapping: this.mapping,
+          version: this.version,
+          protocol: this.protocol,
+        };
+
+      case 1:
+        return {
+          id: this.id,
+          globalId: this.globalId,
+          name: this.name,
+          mapping: this.mapping,
+          version: this.version,
+          protocol: this.protocol,
+          health_check_url: this.health_check_url,
+          health_check_interval: this.health_check_interval,
+          timeout: this.timeout,
+          env: this.env,
+        };
+
+      default:
+        return {
+          id: this.id,
+          globalId: this.globalId,
+          name: this.name,
+          mapping: this.mapping,
+          version: this.version,
+          protocol: this.protocol,
+          health_check_url: this.health_check_url,
+          health_check_interval: this.health_check_interval,
+          timeout: this.timeout,
+          env: this.env,
+        };
+    }
   }
 
   // getters for each properties
@@ -156,11 +193,11 @@ module.exports = class Service {
   }
 
   getInstance(index) {
-    if (index >= this.instances.length) {
+    if (index > this.instances.length) {
       throw new ServiceError('No instance with index: ' + index);
     }
 
-    return this.instances[index];
+    return this.instances[index - 1];
   }
 
   getInstanceById(instance_id) {
@@ -321,14 +358,18 @@ module.exports = class Service {
       const status_ = instance.getStatus();
       if (timeDiff > this.heartbeat_interval * 2) {
         instance.setStatus('DOWN');
+        ServiceRegistry.getRegistry().cancelledInstance(
+          this.id,
+          instance.getId(),
+        );
       } else {
         instance.setStatus('UP');
       }
 
       // if changes occur in the instance status broadcast the changes to the clients
       if (status_ !== instance.getStatus()) {
-        Logger.logger().warn(
-          `[bitmonx]: Instance ${instance.getId()} is ${instance.getStatus()}`,
+        Service.logger.warn(
+          `instance ${instance.getId()} is ${instance.getStatus()}`,
         );
         // broadcast the instance status to the clients
         broadcastData({

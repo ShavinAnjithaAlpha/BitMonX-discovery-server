@@ -26,16 +26,43 @@ module.exports = class Instance {
   constructor() {}
 
   /*
-   * return JSON representation of the instance object
+   * return JSON representation of the instance object based on verbosity level provided
+   * @param {number} verbosity_level - The verbosity level of the JSON representation
+   * verbosity_level 0: return only the basic details of the instance
+   * verbosity_level 1: return the basic details along with the status of the instance
    */
-  toJSON() {
-    return {
-      id: this.id,
-      sevice_id: this.service_id,
-      instance_name: this.instance_name,
-      ip_address: this.ip_address,
-      port: this.port,
-    };
+  toJSON(verbosity_level = 0) {
+    switch (verbosity_level) {
+      case 0:
+        return {
+          id: this.id,
+          globalId: this.globalId,
+          seviceId: this.service_id,
+          instanceName: this.instance_name,
+          ipAddress: this.ip_address,
+          port: this.port,
+        };
+      case 1:
+        return {
+          id: this.id,
+          globalId: this.globalId,
+          seviceId: this.service_id,
+          instanceName: this.instance_name,
+          ipAddress: this.ip_address,
+          port: this.port,
+          status: this.status,
+        };
+
+      default:
+        return {
+          id: this.id,
+          globalId: this.globalId,
+          seviceId: this.service_id,
+          instanceName: this.instance_name,
+          ipAddress: this.ip_address,
+          port: this.port,
+        };
+    }
   }
 
   // setters for each properties
