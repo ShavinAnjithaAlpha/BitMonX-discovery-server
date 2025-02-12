@@ -193,7 +193,7 @@ function queryHealth(req, res) {
 function getLastNRegisteredServices(req, res) {
   // get the N from the path variable in the request url
   try {
-    const N = parseInt(req.query.N);
+    const N = parseInt(req.params.N);
 
     const registry = ServiceRegistry.getRegistry();
     const lastNRegisteredServices = registry
@@ -222,7 +222,7 @@ function getLastNRegisteredServices(req, res) {
 function getLastNRegisteredInstances(req, res) {
   // get the N from the path variable in the request url
   try {
-    const N = parseInt(req.query.N);
+    const N = parseInt(req.params.N);
 
     const registry = ServiceRegistry.getRegistry();
     const lastNRegisteredInstances = registry
@@ -249,6 +249,63 @@ function getLastNRegisteredInstances(req, res) {
   }
 }
 
+function getLastNUpdatedInstances(req, res) {
+  try {
+    const N = parseInt(req.params.N);
+
+    const registry = ServiceRegistry.getRegistry();
+    const lastNUpdatedInstances = registry
+      .getLastNUpdatedInstances()
+      .getLastN(N);
+    const results = [];
+
+    lastNUpdatedInstances.forEach((instance) => {
+      if (instance != null) {
+        results.push(instance.toJSON());
+      }
+    });
+
+    const response = {
+      timestamp: new Date().toISOString(),
+      requested: N,
+      returned: results.length,
+      values: results,
+    };
+    return res.end(JSON.stringify(response));
+  } catch (err) {
+    throw new Error(`Invalid N value: ${err}`);
+  }
+}
+
+function getLastNCancelledInstances(req, res) {
+  try {
+    const N = parseInt(req.params.N);
+
+    const registry = ServiceRegistry.getRegistry();
+    const lastNCancelledInstances = registry
+      .getLastNCancelledInstances()
+      .getLastN(N);
+    const results = [];
+
+    lastNCancelledInstances.forEach((instance) => {
+      if (instance != null) {
+        results.push(instance.toJSON());
+      }
+    });
+
+    const response = {
+      timestamp: new Date().toISOString(),
+      requested: N,
+      returned: results.length,
+      values: results,
+    };
+
+    return res.end(JSON.stringify(response));
+  } catch (err) {
+    throw new Error(`Invalid N value: ${err}`);
+  }
+}
+
 module.exports = {
   registerNewService,
   deregisterService,
@@ -258,4 +315,6 @@ module.exports = {
   fetchRegistry,
   getLastNRegisteredServices,
   getLastNRegisteredInstances,
+  getLastNUpdatedInstances,
+  getLastNCancelledInstances,
 };
