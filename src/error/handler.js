@@ -1,5 +1,6 @@
 const Logger = require('../logger');
 
+const logger = Logger.logger('errorHandler');
 /*
  * errorHandler function
  * @function
@@ -10,10 +11,16 @@ const Logger = require('../logger');
  */
 function errorHandler(err, req, res) {
   // log the error to the logger
-  Logger.logger().error('Error: ', err.message);
+  logger.error('Error: ', err.message);
   // send the error response to the client
   res.statusCode = err.status || 500;
-  res.end(JSON.stringify({ error: err.message }));
+
+  const errorMessage = {
+    timestamp: new Date().toISOString(),
+    status: res.statusCode,
+    error: err.message,
+  };
+  res.end(JSON.stringify(errorMessage));
 }
 
 module.exports = errorHandler;
